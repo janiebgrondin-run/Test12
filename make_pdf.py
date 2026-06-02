@@ -10,6 +10,8 @@ from reportlab.platypus import (
     HRFlowable, PageBreak, KeepTogether
 )
 from reportlab.lib.enums import TA_LEFT, TA_CENTER
+import math
+from reportlab.graphics.shapes import Drawing, Rect, String as GString, Line
 
 # ── colour palette ──────────────────────────────────────────────────────────
 DARK_BLUE   = colors.HexColor("#1a3a5c")
@@ -139,6 +141,155 @@ def make_table(headers, rows, col_widths):
     t.setStyle(TABLE_HDR)
     return t
 
+def make_erd(page_w):
+    """Build an entity-relationship diagram as a reportlab Drawing."""
+    DW, DH = page_w, 265
+    drw = Drawing(DW, DH)
+
+    BW, BH, HDR_H = 148, 145, 22
+    LINE_H = 14
+
+    C_DARK  = colors.HexColor("#1a3a5c")
+    C_MID   = colors.HexColor("#2e6da4")
+    C_LIGHT = colors.HexColor("#dce9f5")
+    C_AMBER = colors.HexColor("#fff8e1")
+    C_GREEN = colors.HexColor("#e8f5e9")
+    C_DKGRN = colors.HexColor("#2e7d32")
+    C_GREY  = colors.HexColor("#888888")
+    C_LGREY = colors.HexColor("#f5f5f5")
+
+    def draw_box(x, y, title, lines, pk_idx=(), fk_idx=()):
+        drw.add(Rect(x, y + BH - HDR_H, BW, HDR_H,
+                     fillColor=C_DARK, strokeColor=C_DARK, strokeWidth=0))
+        drw.add(GString(x + BW/2, y + BH - HDR_H + 6, title,
+                        fontSize=7.5, fontName="Helvetica-Bold",
+                        fillColor=colors.white, textAnchor="middle"))
+        drw.add(Rect(x, y, BW, BH - HDR_H,
+                     fillColor=C_LIGHT, strokeColor=C_DARK, strokeWidth=0.8))
+        for i, txt in enumerate(lines):
+            ry = y + BH - HDR_H - 17 - i * LINE_H
+            hl = C_AMBER if i in pk_idx else C_GREEN if i in fk_idx else None
+            if hl:
+                drw.add(Rect(x + 1, ry - 3, BW - 2, 13,
+                             fillColor=hl, strokeColor=None, strokeWidth=0))
+            drw.add(GString(x + 7, ry, txt, fontSize=7,
+                            fontName="Helvetica", fillColor=colors.black,
+                            textAnchor="start"))
+
+    def draw_arrow(x1, y1, x2, y2, label=""):
+        drw.add(Line(x1, y1, x2, y2, strokeColor=C_MID, strokeWidth=1.2))
+        ang = math.atan2(y2 - y1, x2 - x1)
+        for da in (0.45, -0.45):
+            drw.add(Line(x2, y2,
+                         x2 - 9*math.cos(ang + da),
+                         y2 - 9*math.sin(ang + da),
+                         strokeColor=C_MID, strokeWidth=1.2))
+        if label:
+            drw.add(GString((x1+x2)/2, (y1+y2)/2 + 7, label,
+                            fontSize=6.5, fontName="Helvetica-Oblique",
+                            fillColor=C_GREY, textAnchor="middle"))
+
+    # ── Three runtime boxes ────────────────────────────────────────────────
+    y0 = 105
+    r_x, c_x, t_x = 5, 200, 392
+
+    draw_box(r_x, y0, "WS-RULES  (Config — singleton)",
+             ["BR-MIN-BALANCE   = $100.00",
+              "BR-VIP-THRESHOLD = $50,000",
+              "BR-MIN-TX-AMOUNT = $1.00",
+              "BR-MAX-WD-SINGLE = $10,000",
+              "BR-MAX-DEP-SINGLE= $50,000",
+              "BR-MAX-WD-DAILY  = $20,000",
+              "BR-MAX-DEP-DAILY = $100,000",
+              "... (15 parameters total)"])
+
+    draw_box(c_x, y0, "WS-CLIENT-DB  (≤1,000 rows)",
+             ["PK  DB-CLIENT-ID  (6-digit)",
+              "    DB-LAST-NAME / FIRST-NAME",
+              "    DB-BALANCE",
+              "    DB-STATUS  (A / F / C)",
+              "    DB-ACCT-TYPE  (R / V)",
+              "    DB-DAILY-WD / DAILY-DEP",
+              "    DB-TX-COUNT / OPEN-DATE",
+              "    ... (13 fields total)"],
+             pk_idx=(0,))
+
+    draw_box(t_x, y0, "WS-TX-LOG  (≤5,000 rows)",
+             ["PK  TX-ID  (sequential)",
+              "FK  TX-CLIENT-ID",
+              "    TX-DATE / TX-TIME",
+              "    TX-TYPE  (D / W)",
+              "    TX-AMOUNT",
+              "    TX-BAL-AFTER",
+              "    TX-RESULT  (OK / RJ)",
+              "    TX-REJECT-REASON"],
+             pk_idx=(0,), fk_idx=(1,))
+
+    # ── Relationship arrows ────────────────────────────────────────────────
+    mid_y = y0 + BH / 2
+    draw_arrow(r_x + BW, mid_y, c_x, mid_y, "governs transaction limits")
+    draw_arrow(c_x + BW, mid_y, t_x, mid_y)
+    drw.add(GString(c_x + BW + 5, mid_y + 5, "1",
+                    fontSize=9, fontName="Helvetica-Bold",
+                    fillColor=C_DARK, textAnchor="start"))
+    drw.add(GString(t_x - 13, mid_y + 5, "M",
+                    fontSize=9, fontName="Helvetica-Bold",
+                    fillColor=C_DARK, textAnchor="start"))
+    drw.add(GString((c_x + BW + t_x) / 2, mid_y - 10,
+                    "TX-CLIENT-ID  →  DB-CLIENT-ID",
+                    fontSize=6.5, fontName="Helvetica-Oblique",
+                    fillColor=C_GREY, textAnchor="middle"))
+
+    # ── Init-only section (bottom strip) ──────────────────────────────────
+    IW, IH = 130, 62
+    i_y = 8
+    drw.add(Rect(5, i_y - 4, DW - 10, IH + 14,
+                 fillColor=C_LGREY,
+                 strokeColor=colors.HexColor("#cccccc"), strokeWidth=0.5))
+    drw.add(GString(DW / 2, i_y + IH + 4,
+                    "INITIALIZATION ONLY — seeded once at startup, not modified at runtime",
+                    fontSize=7, fontName="Helvetica-Bold",
+                    fillColor=colors.HexColor("#555555"), textAnchor="middle"))
+
+    for ix, name, l1, l2, tgt_x in [
+        (10,  "WS-LNAME-TABLE", "LT-VALUE × 20", "Surnames for DB seeding",      c_x + 35),
+        (165, "WS-FNAME-TABLE", "FT-VALUE × 20", "First names for DB seeding",   c_x + 85),
+    ]:
+        drw.add(Rect(ix, i_y, IW, IH,
+                     fillColor=C_GREEN, strokeColor=C_DKGRN, strokeWidth=0.8))
+        drw.add(Rect(ix, i_y + IH - 18, IW, 18,
+                     fillColor=C_DKGRN, strokeColor=C_DKGRN, strokeWidth=0))
+        drw.add(GString(ix + IW/2, i_y + IH - 10, name,
+                        fontSize=7, fontName="Helvetica-Bold",
+                        fillColor=colors.white, textAnchor="middle"))
+        drw.add(GString(ix + 8, i_y + 28, l1, fontSize=7,
+                        fontName="Helvetica", fillColor=colors.black))
+        drw.add(GString(ix + 8, i_y + 14, l2, fontSize=7,
+                        fontName="Helvetica", fillColor=colors.black))
+        draw_arrow(ix + IW, i_y + IH/2, tgt_x, y0, "seeds at init")
+
+    # ── Legend ─────────────────────────────────────────────────────────────
+    lx, ly = 315, i_y + 2
+    drw.add(Rect(lx, ly, 218, 68,
+                 fillColor=C_LGREY,
+                 strokeColor=colors.HexColor("#cccccc"), strokeWidth=0.5))
+    drw.add(GString(lx + 109, ly + 57, "LEGEND",
+                    fontSize=7.5, fontName="Helvetica-Bold",
+                    fillColor=colors.black, textAnchor="middle"))
+    for j, (fc, sc, lbl) in enumerate([
+        (C_AMBER, C_DARK,  "Row highlighted amber   =  Primary Key (PK)"),
+        (C_GREEN, C_DKGRN, "Row highlighted green   =  Foreign Key (FK)"),
+        (C_LIGHT, C_DARK,  "Blue header box          =  Runtime table"),
+        (C_GREEN, C_DKGRN, "Green header box        =  Init-only table"),
+    ]):
+        jy = ly + 44 - j * 14
+        drw.add(Rect(lx + 8, jy, 12, 10,
+                     fillColor=fc, strokeColor=sc, strokeWidth=0.5))
+        drw.add(GString(lx + 26, jy + 1, lbl, fontSize=6.5,
+                        fontName="Helvetica", fillColor=colors.black,
+                        textAnchor="start"))
+    return drw
+
 # ── document assembly ────────────────────────────────────────────────────────
 story = []
 PAGE_W = letter[0] - inch  # usable width
@@ -196,6 +347,7 @@ toc_items = [
     "11. Inquiries & Reporting",
     "12. System Capacity & Constraints",
     "13. Migration Notes for Business Analysts",
+    "14. Data Structures, Fields & Entity Relationships",
 ]
 for item in toc_items:
     story.append(Paragraph(item, styles["toc"]))
@@ -585,6 +737,132 @@ decisions = [
 for i, d in enumerate(decisions, 1):
     story.append(Paragraph(f"{i}.  {d}", styles["body"]))
     story.append(Spacer(1, 4))
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 14 — Data Structures, Fields & Entity Relationships
+# ═══════════════════════════════════════════════════════════════════════════════
+story.append(section_title("14", "Data Structures, Fields & Entity Relationships"))
+story.append(body(
+    "The system holds three runtime in-memory databases and two initialization-only reference tables. "
+    "The diagram below shows the structure and relationships; detailed field definitions follow."))
+story.append(Spacer(1, 8))
+
+story.append(make_erd(PAGE_W))
+story.append(Spacer(1, 14))
+
+# ── 14.1  WS-RULES ────────────────────────────────────────────────────────────
+story.append(sub_title("14.1  WS-RULES — Business Rules Configuration"))
+story.append(body(
+    "A single, read-only record loaded at startup. Contains every hardcoded threshold and limit "
+    "applied during transaction processing. There is no key — the record is a singleton."))
+story.append(Spacer(1, 4))
+story.append(make_table(
+    ["COBOL Field", "Value", "Data Type", "Description"],
+    [
+        ["BR-MIN-BALANCE",        "$100.00",      "Numeric 8.2",  "Minimum balance an account must retain after any withdrawal"],
+        ["BR-MAX-WD-SINGLE",      "$10,000.00",   "Numeric 8.2",  "Maximum amount a Regular account may withdraw in one transaction"],
+        ["BR-MAX-DEP-SINGLE",     "$50,000.00",   "Numeric 8.2",  "Maximum amount a Regular account may deposit in one transaction"],
+        ["BR-MAX-WD-DAILY",       "$20,000.00",   "Numeric 8.2",  "Maximum total withdrawals a Regular account may make in one business day"],
+        ["BR-MAX-DEP-DAILY",      "$100,000.00",  "Numeric 8.2",  "Maximum total deposits a Regular account may receive in one business day"],
+        ["BR-MIN-TX-AMOUNT",      "$1.00",        "Numeric 8.2",  "Minimum dollar amount accepted for any transaction (deposit or withdrawal)"],
+        ["BR-INITIAL-BALANCE",    "$500.00",      "Numeric 8.2",  "Opening balance assigned to every new account"],
+        ["BR-VIP-THRESHOLD",      "$50,000.00",   "Numeric 8.2",  "Balance threshold above which an account is classified as VIP"],
+        ["BR-VIP-MAX-WD-SINGLE",  "$50,000.00",   "Numeric 8.2",  "Maximum amount a VIP account may withdraw in one transaction"],
+        ["BR-VIP-MAX-DEP-SINGLE", "$250,000.00",  "Numeric 8.2",  "Maximum amount a VIP account may deposit in one transaction"],
+        ["BR-VIP-MAX-WD-DAILY",   "$100,000.00",  "Numeric 8.2",  "Maximum total withdrawals a VIP account may make in one business day"],
+        ["BR-VIP-MAX-DEP-DAILY",  "$500,000.00",  "Numeric 8.2",  "Maximum total deposits a VIP account may receive in one business day"],
+        ["BR-MAX-CLIENTS",        "1,000",        "Numeric 4",    "Maximum number of client accounts the database can hold"],
+        ["BR-MAX-TX-LOG",         "5,000",        "Numeric 5",    "Capacity of the transaction log circular buffer"],
+        ["BR-FIRST-CLIENT-ID",    "100001",       "Numeric 6",    "Starting value for auto-assigned Client IDs"],
+    ],
+    [1.7*inch, 0.85*inch, 0.85*inch, PAGE_W - 3.4*inch]
+))
+story.append(Spacer(1, 12))
+
+# ── 14.2  WS-CLIENT-DB ────────────────────────────────────────────────────────
+story.append(sub_title("14.2  WS-CLIENT-DB — Client Account Database"))
+story.append(body(
+    "The primary account store. Holds up to 1,000 records, one per client. "
+    "DB-CLIENT-ID is the primary key and the join field to WS-TX-LOG."))
+story.append(Spacer(1, 4))
+story.append(make_table(
+    ["COBOL Field", "Key", "Data Type", "Valid Values / Format", "Description"],
+    [
+        ["DB-CLIENT-ID",    "PK", "Numeric 6",       "100001 – 101000",        "Unique client identifier assigned sequentially at account opening"],
+        ["DB-LAST-NAME",    "",   "Alpha 15",         "Free text",              "Client surname (up to 15 characters)"],
+        ["DB-FIRST-NAME",   "",   "Alpha 10",         "Free text",              "Client given name (up to 10 characters)"],
+        ["DB-BALANCE",      "",   "Signed Num 10.2",  "Any value ≥ BR-MIN-BALANCE", "Current account balance in dollars"],
+        ["DB-STATUS",       "",   "Alpha 1",          "A = Active\nF = Frozen\nC = Closed", "Current account status — controls whether transactions are permitted"],
+        ["DB-ACCT-TYPE",    "",   "Alpha 1",          "R = Regular\nV = VIP",   "Account tier — determines which transaction limits apply"],
+        ["DB-DAILY-WD",     "",   "Numeric 10.2",     "0.00 – 999,999.99",      "Running total of withdrawals processed today; resets to 0 at end of day"],
+        ["DB-DAILY-DEP",    "",   "Numeric 10.2",     "0.00 – 999,999.99",      "Running total of deposits received today; resets to 0 at end of day"],
+        ["DB-OPEN-DATE",    "",   "Alpha 10",         "YYYY-MM-DD",             "Date the account was opened"],
+        ["DB-TX-COUNT",     "",   "Numeric 6",        "0 – 999999",             "Lifetime count of all transaction attempts (approved and rejected)"],
+        ["DB-LAST-TX-DATE", "",   "Alpha 10",         "YYYY-MM-DD",             "Date of the most recent transaction attempt on this account"],
+        ["DB-LAST-TX-TYPE", "",   "Alpha 1",          "D = Deposit\nW = Withdrawal", "Type of the most recent transaction"],
+        ["DB-LAST-TX-AMT",  "",   "Numeric 10.2",     "0.00 – 999,999.99",      "Dollar amount of the most recent transaction"],
+    ],
+    [1.55*inch, 0.3*inch, 0.95*inch, 1.35*inch, PAGE_W - 4.15*inch]
+))
+story.append(Spacer(1, 12))
+
+# ── 14.3  WS-TX-LOG ────────────────────────────────────────────────────────────
+story.append(sub_title("14.3  WS-TX-LOG — Transaction Log"))
+story.append(body(
+    "An audit log of every transaction attempt (approved and rejected). Implemented as a circular "
+    "buffer of 5,000 entries — once full, the oldest entry is overwritten. "
+    "TX-CLIENT-ID is a foreign key to WS-CLIENT-DB.DB-CLIENT-ID (many transactions per client)."))
+story.append(Spacer(1, 4))
+story.append(make_table(
+    ["COBOL Field", "Key", "Data Type", "Valid Values / Format", "Description"],
+    [
+        ["TX-ID",            "PK", "Numeric 8",       "1, 2, 3 … (never reset)", "Sequential transaction identifier assigned at log time; never reused in a session"],
+        ["TX-DATE",          "",   "Alpha 10",         "YYYY-MM-DD",              "Date the transaction was processed"],
+        ["TX-TIME",          "",   "Alpha 8",          "HH:MM:SS",                "Time the transaction was processed"],
+        ["TX-CLIENT-ID",     "FK", "Numeric 6",        "100001 – 101000",         "Client account involved; joins to DB-CLIENT-ID in WS-CLIENT-DB"],
+        ["TX-TYPE",          "",   "Alpha 1",          "D = Deposit\nW = Withdrawal", "Type of transaction attempted"],
+        ["TX-AMOUNT",        "",   "Numeric 10.2",     "0.00 – 999,999.99",       "Dollar amount of the transaction attempt"],
+        ["TX-BAL-AFTER",     "",   "Signed Num 10.2",  "Any value",               "Account balance immediately after the transaction (populated for approved transactions)"],
+        ["TX-RESULT",        "",   "Alpha 2",          "OK = Approved\nRJ = Rejected", "Whether the transaction was approved or rejected by the validation rules"],
+        ["TX-REJECT-REASON", "",   "Alpha 30",         "Free text or spaces",     "Plain-text explanation of why the transaction was rejected; blank if approved"],
+    ],
+    [1.55*inch, 0.3*inch, 0.95*inch, 1.35*inch, PAGE_W - 4.15*inch]
+))
+story.append(Spacer(1, 12))
+
+# ── 14.4  Init reference tables ───────────────────────────────────────────────
+story.append(sub_title("14.4  WS-LNAME-TABLE & WS-FNAME-TABLE — Initialization Seed Data"))
+story.append(body(
+    "Two small lookup tables used only during system startup to populate the client database with "
+    "sample names. They are not referenced during normal transaction processing and have no "
+    "primary key or relationships at runtime."))
+story.append(Spacer(1, 4))
+story.append(make_table(
+    ["Table", "COBOL Field", "Data Type", "Entries", "Purpose"],
+    [
+        ["WS-LNAME-TABLE", "LT-VALUE", "Alpha 15", "20",
+         "Pool of surnames cycled across 1,000 client records at initialization"],
+        ["WS-FNAME-TABLE", "FT-VALUE", "Alpha 10", "20",
+         "Pool of first names cycled across 1,000 client records at initialization"],
+    ],
+    [1.5*inch, 1.0*inch, 0.8*inch, 0.6*inch, PAGE_W - 3.9*inch]
+))
+story.append(Spacer(1, 12))
+
+# ── 14.5  Relationship summary ─────────────────────────────────────────────────
+story.append(sub_title("14.5  Entity Relationship Summary"))
+story.append(make_table(
+    ["From Table", "Relationship", "To Table", "Join Condition", "Cardinality"],
+    [
+        ["WS-RULES",        "governs",           "WS-CLIENT-DB", "No join field — rules apply globally to all accounts",   "1 rule set → N accounts"],
+        ["WS-RULES",        "governs",           "WS-TX-LOG",    "No join field — rules govern every transaction attempt",  "1 rule set → N log entries"],
+        ["WS-CLIENT-DB",    "referenced by",     "WS-TX-LOG",    "WS-TX-LOG.TX-CLIENT-ID = WS-CLIENT-DB.DB-CLIENT-ID",     "1 account → M log entries"],
+        ["WS-LNAME-TABLE",  "seeds (init only)", "WS-CLIENT-DB", "MOD(record#, 20) selects surname index",                 "20 names → 1,000 accounts"],
+        ["WS-FNAME-TABLE",  "seeds (init only)", "WS-CLIENT-DB", "MOD(record#+6, 20) selects first name index",            "20 names → 1,000 accounts"],
+    ],
+    [1.2*inch, 1.0*inch, 1.1*inch, 2.4*inch, PAGE_W - 5.7*inch]
+))
+story.append(Spacer(1, 10))
 
 # ── Build PDF ─────────────────────────────────────────────────────────────────
 doc = SimpleDocTemplate(
