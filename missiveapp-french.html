@@ -3,76 +3,61 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Missive en français</title>
+  <title>Missive — Version française</title>
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-      background: #f5f5f5;
+      height: 100vh;
+      background: #1a1a2e;
     }
 
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 48px 56px;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.10);
-      text-align: center;
-      max-width: 420px;
-      width: 90%;
-    }
-
-    h1 {
-      font-size: 1.5rem;
-      margin: 0 0 8px;
-      color: #111;
-    }
-
-    p {
-      color: #555;
-      margin: 0 0 32px;
-      font-size: 0.95rem;
-    }
-
-    .btn {
-      display: inline-block;
-      background: #1a73e8;
+    header {
+      background: #1a1a2e;
       color: white;
-      text-decoration: none;
-      padding: 14px 32px;
-      border-radius: 8px;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+      border-bottom: 2px solid #0f3460;
+    }
+
+    header span.flag { font-size: 1.4rem; }
+
+    header h1 {
       font-size: 1rem;
       font-weight: 600;
-      transition: background 0.2s;
+      letter-spacing: 0.3px;
     }
 
-    .btn:hover {
-      background: #1558b0;
+    header p {
+      font-size: 0.78rem;
+      color: #aaa;
+      margin-left: auto;
     }
 
-    .flag {
-      font-size: 2.5rem;
-      margin-bottom: 16px;
+    iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="flag">🇫🇷</div>
-    <h1>Missive en français</h1>
-    <p>Cliquez pour ouvrir Missive traduit en français via Google Traduction.</p>
-    <a
-      class="btn"
-      href="https://translate.google.com/translate?sl=en&tl=fr&u=https%3A%2F%2Fmissiveapp.com"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      Ouvrir Missive en français
-    </a>
-  </div>
+  <header>
+    <span class="flag">🇫🇷</span>
+    <h1>Missive — Traduit en français</h1>
+    <p>Contenu traduit automatiquement via Google Traduction</p>
+  </header>
+
+  <iframe
+    src="https://missiveapp-com.translate.goog/?_x_tr_sl=en&_x_tr_tl=fr&_x_tr_hl=fr&_x_tr_pto=wapp"
+    title="Missive en français"
+    allowfullscreen
+  ></iframe>
 </body>
 </html>
