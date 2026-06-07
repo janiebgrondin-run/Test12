@@ -7,195 +7,330 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --accent: #7c3aed;
+      --accent-light: #ede9fe;
+      --accent-hover: #6d28d9;
+      --bg: #f5f3ff;
+      --card: #ffffff;
+      --border: #e5e7eb;
+      --text: #1f2937;
+      --muted: #9ca3af;
+      --danger: #ef4444;
+      --done-line: #c4b5fd;
+      --shadow: 0 8px 32px rgba(124,58,237,.10);
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f0f2f5;
+      background: var(--bg);
       min-height: 100vh;
       display: flex;
       align-items: flex-start;
       justify-content: center;
-      padding: 48px 16px;
+      padding: 56px 16px 80px;
     }
 
+    /* ── Card ── */
     .card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      background: var(--card);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
       width: 100%;
-      max-width: 480px;
-      padding: 32px;
+      max-width: 500px;
+      overflow: hidden;
     }
 
-    h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #111;
-      margin-bottom: 24px;
+    /* ── Header ── */
+    .card-header {
+      background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+      padding: 32px 32px 28px;
+      color: #fff;
     }
 
+    .card-header h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .card-header p {
+      margin-top: 4px;
+      font-size: 0.88rem;
+      opacity: 0.8;
+    }
+
+    .progress-bar-wrap {
+      margin-top: 18px;
+      background: rgba(255,255,255,.25);
+      border-radius: 99px;
+      height: 6px;
+      overflow: hidden;
+    }
+
+    #progress-bar {
+      height: 100%;
+      background: #fff;
+      border-radius: 99px;
+      transition: width .4s ease;
+    }
+
+    /* ── Body ── */
+    .card-body { padding: 28px 32px; }
+
+    /* ── Add row ── */
     .add-row {
       display: flex;
-      gap: 8px;
-      margin-bottom: 28px;
+      gap: 10px;
+      margin-bottom: 24px;
     }
 
     .add-row input {
       flex: 1;
-      border: 1.5px solid #d1d5db;
-      border-radius: 8px;
-      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 16px;
       font-size: 0.95rem;
+      color: var(--text);
+      background: #fafafa;
       outline: none;
-      transition: border-color .2s;
+      transition: border-color .2s, box-shadow .2s, background .2s;
     }
 
-    .add-row input:focus { border-color: #6366f1; }
+    .add-row input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124,58,237,.12);
+      background: #fff;
+    }
 
     .add-row button {
-      background: #6366f1;
+      background: var(--accent);
       color: #fff;
       border: none;
-      border-radius: 8px;
-      padding: 10px 18px;
-      font-size: 0.95rem;
-      font-weight: 600;
+      border-radius: 10px;
+      padding: 11px 20px;
+      font-size: 0.9rem;
+      font-weight: 700;
       cursor: pointer;
-      transition: background .2s;
+      transition: background .2s, transform .1s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       white-space: nowrap;
     }
 
-    .add-row button:hover { background: #4f46e5; }
+    .add-row button:hover  { background: var(--accent-hover); }
+    .add-row button:active { transform: scale(.97); }
 
+    /* ── Filters ── */
     .filters {
       display: flex;
       gap: 6px;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
 
     .filters button {
       background: none;
-      border: 1.5px solid #e5e7eb;
-      border-radius: 6px;
-      padding: 5px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 14px;
       font-size: 0.82rem;
+      font-weight: 600;
       cursor: pointer;
-      color: #6b7280;
+      color: var(--muted);
       transition: all .15s;
     }
 
     .filters button.active,
     .filters button:hover {
-      background: #6366f1;
-      border-color: #6366f1;
-      color: #fff;
+      background: var(--accent-light);
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
+    /* ── Task list ── */
     ul { list-style: none; }
 
     li {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid #f3f4f6;
-      animation: slide-in .2s ease;
+      gap: 14px;
+      padding: 13px 16px;
+      border-radius: 12px;
+      margin-bottom: 6px;
+      background: #fafafa;
+      border: 1.5px solid transparent;
+      transition: border-color .2s, background .2s;
+      animation: pop-in .2s ease;
     }
 
-    li:last-child { border-bottom: none; }
+    li:hover { border-color: var(--border); background: #fff; }
+    li.done  { background: var(--accent-light); border-color: var(--done-line); }
 
-    @keyframes slide-in {
-      from { opacity: 0; transform: translateY(-6px); }
-      to   { opacity: 1; transform: translateY(0); }
+    @keyframes pop-in {
+      from { opacity: 0; transform: translateY(-8px) scale(.98); }
+      to   { opacity: 1; transform: translateY(0)   scale(1);    }
     }
 
-    li input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: #6366f1;
-      cursor: pointer;
+    /* custom checkbox */
+    .check-wrap {
+      position: relative;
+      width: 20px;
+      height: 20px;
       flex-shrink: 0;
     }
 
+    .check-wrap input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      z-index: 1;
+      margin: 0;
+    }
+
+    .check-box {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 2px solid #d1d5db;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color .2s, background .2s;
+      pointer-events: none;
+    }
+
+    li.done .check-box {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .check-box svg { display: none; }
+    li.done .check-box svg { display: block; }
+
     .task-text {
       flex: 1;
-      font-size: 0.95rem;
-      color: #374151;
+      font-size: 0.94rem;
+      color: var(--text);
+      line-height: 1.4;
       word-break: break-word;
       transition: color .2s;
     }
 
     li.done .task-text {
       text-decoration: line-through;
-      color: #9ca3af;
+      color: var(--muted);
     }
 
     .delete-btn {
       background: none;
       border: none;
       cursor: pointer;
-      color: #d1d5db;
-      font-size: 1.1rem;
-      line-height: 1;
-      padding: 2px 4px;
-      border-radius: 4px;
-      transition: color .15s;
+      color: #e0d7f9;
+      font-size: 0.85rem;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: color .15s, background .15s;
       flex-shrink: 0;
+      line-height: 1;
     }
 
-    .delete-btn:hover { color: #ef4444; }
+    .delete-btn:hover { color: var(--danger); background: #fee2e2; }
 
+    /* ── Empty ── */
     .empty {
       text-align: center;
-      color: #9ca3af;
-      font-size: 0.9rem;
-      padding: 32px 0;
+      padding: 40px 0;
     }
 
-    .summary {
-      margin-top: 20px;
+    .empty-icon { font-size: 2.4rem; margin-bottom: 10px; }
+    .empty p { color: var(--muted); font-size: 0.9rem; }
+
+    /* ── Footer ── */
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 32px 28px;
       font-size: 0.82rem;
-      color: #9ca3af;
-      text-align: right;
+      color: var(--muted);
     }
+
+    #clear-done {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 0.82rem;
+      transition: color .15s;
+      padding: 0;
+    }
+
+    #clear-done:hover { color: var(--danger); }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>To-Do List</h1>
 
-    <div class="add-row">
-      <input id="new-task" type="text" placeholder="Add a new task…" autocomplete="off" />
-      <button onclick="addTask()">Add</button>
+    <div class="card-header">
+      <h1>My To-Do List</h1>
+      <p id="header-sub">Keep track of what matters</p>
+      <div class="progress-bar-wrap">
+        <div id="progress-bar" style="width:0%"></div>
+      </div>
     </div>
 
-    <div class="filters">
-      <button class="active" data-filter="all"    onclick="setFilter('all',    this)">All</button>
-      <button               data-filter="active"  onclick="setFilter('active',  this)">Active</button>
-      <button               data-filter="done"    onclick="setFilter('done',    this)">Done</button>
+    <div class="card-body">
+
+      <div class="add-row">
+        <input id="new-task" type="text" placeholder="What needs to be done?" autocomplete="off" />
+        <button onclick="addTask()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+          Add
+        </button>
+      </div>
+
+      <div class="filters">
+        <button class="active" onclick="setFilter('all',    this)">All</button>
+        <button               onclick="setFilter('active',  this)">Active</button>
+        <button               onclick="setFilter('done',    this)">Done</button>
+      </div>
+
+      <ul id="task-list"></ul>
+
+      <div id="empty-state" class="empty" style="display:none">
+        <div class="empty-icon">&#10003;</div>
+        <p>Nothing here yet. Add a task above!</p>
+      </div>
+
     </div>
 
-    <ul id="task-list"></ul>
-    <p  id="empty"     class="empty" style="display:none">No tasks here.</p>
-    <p  id="summary"   class="summary"></p>
+    <div class="card-footer">
+      <span id="summary"></span>
+      <button id="clear-done" onclick="clearDone()">Clear completed</button>
+    </div>
+
   </div>
 
   <script>
-    let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+    let tasks  = JSON.parse(localStorage.getItem('tasks') || '[]');
     let filter = 'all';
 
-    function save() {
-      localStorage.setItem('tasks', JSON.stringify(tasks));
-    }
+    function save() { localStorage.setItem('tasks', JSON.stringify(tasks)); }
 
     function render() {
-      const list = document.getElementById('task-list');
-      const empty = document.getElementById('empty');
+      const list   = document.getElementById('task-list');
+      const empty  = document.getElementById('empty-state');
       const summary = document.getElementById('summary');
+      const bar    = document.getElementById('progress-bar');
+      const sub    = document.getElementById('header-sub');
 
       const visible = tasks.filter(t =>
         filter === 'all'    ? true :
-        filter === 'active' ? !t.done :
-                               t.done
+        filter === 'active' ? !t.done : t.done
       );
 
       list.innerHTML = '';
@@ -204,40 +339,60 @@
         if (task.done) li.classList.add('done');
 
         li.innerHTML = `
-          <input type="checkbox" ${task.done ? 'checked' : ''}
-                 onchange="toggle('${task.id}')" />
+          <label class="check-wrap">
+            <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggle('${task.id}')" />
+            <div class="check-box">
+              <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
+                <path d="M1 4l3 3 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </label>
           <span class="task-text">${escHtml(task.text)}</span>
-          <button class="delete-btn" onclick="remove('${task.id}')" title="Delete">&#10005;</button>
+          <button class="delete-btn" onclick="remove('${task.id}')" title="Delete">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
         `;
         list.appendChild(li);
       });
 
-      empty.style.display = visible.length === 0 ? 'block' : 'none';
+      empty.style.display = visible.length === 0 ? 'flex' : 'none';
+      empty.style.flexDirection = 'column';
+      empty.style.alignItems = 'center';
 
       const done  = tasks.filter(t => t.done).length;
       const total = tasks.length;
-      summary.textContent = total ? `${done} / ${total} completed` : '';
+      const pct   = total ? Math.round((done / total) * 100) : 0;
+
+      bar.style.width = pct + '%';
+      summary.textContent = total ? `${done} of ${total} completed` : '';
+      sub.textContent = total === 0 ? 'Keep track of what matters'
+                      : done === total ? 'All done — great work!'
+                      : `${total - done} task${total - done !== 1 ? 's' : ''} remaining`;
     }
 
     function addTask() {
       const input = document.getElementById('new-task');
       const text  = input.value.trim();
-      if (!text) return;
+      if (!text) { input.focus(); return; }
       tasks.unshift({ id: crypto.randomUUID(), text, done: false });
       input.value = '';
-      save();
-      render();
+      save(); render();
+      input.focus();
     }
 
     function toggle(id) {
-      const task = tasks.find(t => t.id === id);
-      if (task) { task.done = !task.done; save(); render(); }
+      const t = tasks.find(t => t.id === id);
+      if (t) { t.done = !t.done; save(); render(); }
     }
 
     function remove(id) {
       tasks = tasks.filter(t => t.id !== id);
-      save();
-      render();
+      save(); render();
+    }
+
+    function clearDone() {
+      tasks = tasks.filter(t => !t.done);
+      save(); render();
     }
 
     function setFilter(f, btn) {
@@ -247,8 +402,8 @@
       render();
     }
 
-    function escHtml(str) {
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     document.getElementById('new-task').addEventListener('keydown', e => {
