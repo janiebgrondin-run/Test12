@@ -35,21 +35,34 @@ async function fetchFlight() {
 
 function mockFlight() {
   const now = Date.now();
+  // TS691: departs Athens ~17h00 local (14h00 UTC), arrives MTL ~00h30 next day
+  const depUTC = new Date(now);
+  depUTC.setUTCHours(14, 0, 0, 0);
+  if (depUTC.getTime() < now) depUTC.setUTCDate(depUTC.getUTCDate() + 1);
+  const depTime = depUTC.getTime();
+  const arrTime = depTime + 10.5 * 3600000;
   return {
-    flight_status: 'active',
-    departure: { airport: 'Athens International Airport', iata: 'ATH', timezone: 'Europe/Athens',
-      scheduled: new Date(now - 5.5*3600000).toISOString(), actual: new Date(now - 5.4*3600000).toISOString() },
-    arrival: { airport: 'Montréal-Pierre Elliott Trudeau International Airport', iata: 'YUL', timezone: 'America/Toronto',
-      scheduled: new Date(now + 4.2*3600000).toISOString(), estimated: new Date(now + 4.0*3600000).toISOString() },
-    flight: { iata: 'TS691', number: '691' },
-    airline: { name: 'Air Transat', iata: 'TS' },
-    aircraft: { registration: 'C-GTSI', iata: 'A332' }
+    flight_status: (depTime - now) < 3600000 ? 'boarding' : 'scheduled',
+    departure: {
+      airport: 'Athens International Airport "Eleftherios Venizelos"',
+      iata: 'ATH', timezone: 'Europe/Athens',
+      scheduled: new Date(depTime).toISOString()
+    },
+    arrival: {
+      airport: 'Montréal-Pierre Elliott Trudeau International Airport',
+      iata: 'YUL', timezone: 'America/Toronto',
+      scheduled: new Date(arrTime).toISOString(),
+      estimated: new Date(arrTime).toISOString()
+    },
+    flight: { iata: 'TS691', icao: 'TSC691', number: '691' },
+    airline: { name: 'Air Transat', iata: 'TS', icao: 'TSC' },
+    aircraft: { registration: 'C-GTSI', iata: 'A332', icao: 'A332' }
   };
 }
 
 async function sendAlert(message) {
   const sid = process.env.TWILIO_ACCOUNT_SID, token = process.env.TWILIO_AUTH_TOKEN, from = process.env.TWILIO_PHONE_NUMBER;
-  if (!sid || !token || !from || DEMO_MODE) { console.log(`📵 [DÉMO] SMS → ${PHONE}:\n${message}\n`); return { demo: true }; }
+  if (!sid || !token || !from || DEMO_MODE) { console.log(`\u📵 [DÉMO] SMS → ${PHONE}:\n${message}\n`); return { demo: true }; }
   const client = require('twilio')(sid, token);
   const useWA = process.env.WHATSAPP_ENABLED === 'true';
   return client.messages.create({ body: message, from: useWA ? `whatsapp:${from}` : from, to: useWA ? `whatsapp:${PHONE}` : PHONE });
@@ -80,7 +93,6 @@ async function checkFlight() {
     db.flight = f;
     if (!f) { writeDB(db); return f; }
 
-    // Write public flight-data.json so the static HTML can read it from GitHub
     fs.writeFileSync(path.join(__dirname, 'flight-data.json'),
       JSON.stringify({ flight: f, lastUpdated: ts, source: process.env.AVIATION_API_KEY ? 'live' : 'demo' }, null, 2));
 
@@ -93,7 +105,7 @@ async function checkFlight() {
     const durStr      = durationMs ? formatDuration(durationMs) : FLIGHT_DUR;
 
     const MSGS = {
-      boarding: [`🛫 ${PERSON_NAME} embarque! Vol TS691`,`━━━━━━━━━━━━━━━━━━━━`,`📍 Athens (ATH) → Montréal (YUL)`,`🕐 Départ Athènes: ${depLocalStr}`,`📏 Distance: ${DIST_KM.toLocaleString('fr-CA')} km (${DIST_MI.toLocaleString('fr-CA')} mi)`,`⏱ Durée estimée: ${FLIGHT_DUR}`,`🛬 Arrivée prévue MTL: ${etaMtlStr}`,`✈️ Air Transat · Airbus A330`].join('\n'),
+      boarding: [`🛫 ${PERSON_NAME} embarque! Vol TS691`,`━━━━━━━━━━━━━━━━━━━━`,`📍 Athens (ATH) → Montréal (YUL)`,`🕐 Départ Athènes: ${depLocalStr}`,`📏 Distance: ${DIST_KM.toLocaleString('fr-CA')} km`,`⏱ Durée estimée: ${FLIGHT_DUR}`,`🛬 Arrivée prévue MTL: ${etaMtlStr}`,`✈️ Air Transat · Airbus A330`].join('\n'),
       active:   [`✈️ ${PERSON_NAME} est en route! Vol TS691`,`━━━━━━━━━━━━━━━━━━━━`,`📍 Athens (ATH) → Montréal (YUL)`,`🕐 Partie d'Athènes: ${depLocalStr}`,`📏 Distance totale: ${DIST_KM.toLocaleString('fr-CA')} km`,`⏱ Durée de vol: ${durStr}`,`🛬 Arrivée prévue MTL: ${etaMtlStr}`,`✈️ Air Transat TS691`].join('\n'),
       landed:   [`🏁 ${PERSON_NAME} est arrivée à Montréal! 🎉`,`━━━━━━━━━━━━━━━━━━━━`,`📍 Athens → Montréal-Trudeau (YUL)`,`🛬 Atterrissage: ${fmtTime(f.arrival?.actual || eta, 'America/Toronto')}`,`📏 Distance parcourue: ${DIST_KM.toLocaleString('fr-CA')} km`,`⏱ Durée du vol: ${durStr}`,`🎉 Bienvenue à Montréal!`].join('\n')
     };
