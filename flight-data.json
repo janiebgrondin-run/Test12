@@ -1,0 +1,35 @@
+{
+  "flight": {
+    "flight_status": "scheduled",
+    "departure": {
+      "airport": "Athens International Airport \"Eleftherios Venizelos\"",
+      "iata": "ATH",
+      "timezone": "Europe/Athens",
+      "scheduled": null
+    },
+    "arrival": {
+      "airport": "Montréal-Pierre Elliott Trudeau International Airport",
+      "iata": "YUL",
+      "timezone": "America/Toronto",
+      "scheduled": null,
+      "estimated": null
+    },
+    "flight": {
+      "iata": "TS691",
+      "icao": "TSC691",
+      "number": "691"
+    },
+    "airline": {
+      "name": "Air Transat",
+      "iata": "TS",
+      "icao": "TSC"
+    },
+    "aircraft": {
+      "registration": "C-GTSI",
+      "iata": "A332",
+      "icao": "A332"
+    }
+  },
+  "lastUpdated": "2026-06-28T12:57:14.247Z",
+  "source": "demo"
+}
