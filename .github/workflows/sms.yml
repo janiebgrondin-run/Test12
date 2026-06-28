@@ -1,0 +1,25 @@
+name: Send Test SMS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sms:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - run: npm install
+
+      - name: Send test SMS to +14182627032
+        env:
+          ALERT_PHONE:         +14182627032
+          TWILIO_ACCOUNT_SID:  ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN:   ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
+          WHATSAPP_ENABLED:    ${{ secrets.WHATSAPP_ENABLED }}
+        run: node -e "require('./server.js').sendTestSMSAlert().then(r => { console.log(JSON.stringify(r)); process.exit(r.sent ? 0 : 1); })"
