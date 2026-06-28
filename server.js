@@ -401,16 +401,19 @@ app.post('/api/test-sms', async (req, res) => {
   const durStr      = durMs ? formatDuration(durMs) : FLIGHT_DUR;
 
   const msg = [
-    `✈️ TEST · ${PERSON_NAME} Vol TS691`,
+    `🔔 Vous êtes maintenant abonné au retour de Gabrielle à Montréal!`,
     `━━━━━━━━━━━━━━━━━━━━`,
-    `📍 Athens (ATH) → Montréal (YUL)`,
+    `✈️ Vol TS691 · Athens (ATH) → Montréal (YUL)`,
     `🕐 Départ Athènes: ${depLocalStr} (heure locale)`,
+    `🛬 Arrivée prévue MTL: ${etaMtlStr}`,
     `📏 Distance: ${DIST_KM.toLocaleString('fr-CA')} km (${DIST_MI.toLocaleString('fr-CA')} mi)`,
     `⏱ Durée estimée: ${durStr}`,
-    `🛬 Arrivée prévue MTL: ${etaMtlStr}`,
-    `✈️ Air Transat · Airbus A330`,
     `━━━━━━━━━━━━━━━━━━━━`,
-    `🔔 Alertes: Embarquement · En Route · Atterri`
+    `📱 Vous recevrez 8 alertes:`,
+    `   🛫 Embarquement`,
+    `   ✈️ En route (x4 mises à jour position)`,
+    `   🏁 Atterrissage`,
+    `   💋 Vous pouvez embrasser Gabrielle!`
   ].join('\n');
 
   let sent = false, error = null, demo = false;
