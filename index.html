@@ -3,854 +3,812 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>✈️ Gabrielle · Vol TS1691</title>
+<title>GABRIELLE · TS1691</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:       #ffffff;
-  --bg2:      #f7f6f3;
-  --bg3:      #edece9;
-  --border:   #e9e9e7;
-  --text:     #37352f;
-  --muted:    #787774;
-  --faint:    #9B9A97;
-  --blue:     #2383e2;
-  --teal:     #0f7b6c;
-  --orange:   #d9730d;
-  --red:      #e03e3e;
-  --purple:   #6940a5;
-  --sidebar:  240px;
-  --radius:   6px;
-}
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+:root {
+  --black:  #000;
+  --white:  #fff;
+  --gray1:  #111;
+  --gray2:  #444;
+  --gray3:  #888;
+  --gray4:  #bbb;
+  --gray5:  #e0e0e0;
+  --gray6:  #f4f4f4;
+  --px: 'Press Start 2P', monospace;
+  --mono: 'Courier New', Courier, monospace;
+}
+
+html { scroll-behavior: smooth; }
+
 body {
-  font-family: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  background: var(--white);
+  color: var(--black);
+  font-family: var(--mono);
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ── Layout ── */
-.app { display: flex; height: 100vh; overflow: hidden; }
-
-/* ── Sidebar ── */
-.sidebar {
-  width: var(--sidebar);
-  min-width: var(--sidebar);
-  background: var(--bg2);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transition: width .2s, min-width .2s;
-}
-.sidebar.collapsed { width: 0; min-width: 0; }
-
-.sidebar-top {
-  padding: 12px 10px 8px;
-  border-bottom: 1px solid var(--border);
-}
-.workspace {
+/* ─── TOP NAV ─── */
+.top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--black);
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: var(--radius);
-  cursor: default;
-  font-weight: 600;
-  font-size: 14px;
+  height: 42px;
+  padding: 0 20px;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
-.workspace:hover { background: var(--bg3); }
-.workspace-icon { font-size: 18px; }
+.top-nav::-webkit-scrollbar { display: none; }
 
-.sidebar-nav { flex: 1; padding: 8px 6px; overflow-y: auto; }
-
-.nav-section-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  color: var(--faint);
-  padding: 12px 8px 4px;
+.nav-logo {
+  font-family: var(--px);
+  font-size: 7px;
+  color: var(--white);
+  letter-spacing: 0.1em;
+  margin-right: 24px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-item {
+  font-family: var(--px);
+  font-size: 6px;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,.45);
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 0 14px;
+  height: 42px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 8px;
-  border-radius: var(--radius);
-  cursor: pointer;
-  color: var(--text);
-  font-size: 14px;
+  border-bottom: 2px solid transparent;
+  flex-shrink: 0;
+  transition: color .1s;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: var(--px);
+}
+.nav-item:hover, .nav-item.active {
+  color: var(--white);
+  border-bottom-color: var(--white);
+}
+
+.nav-pulse {
+  margin-left: auto;
+  font-family: var(--px);
+  font-size: 5px;
+  color: rgba(255,255,255,.3);
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
   white-space: nowrap;
-  overflow: hidden;
-  text-decoration: none;
-  transition: background .1s;
-}
-.nav-item:hover { background: rgba(55,53,47,.08); }
-.nav-item.active { background: rgba(55,53,47,.1); font-weight: 500; }
-.nav-icon { font-size: 16px; flex-shrink: 0; }
-
-.sidebar-footer {
-  padding: 8px 6px 16px;
-  border-top: 1px solid var(--border);
-}
-.sidebar-footer .nav-item { color: var(--muted); font-size: 13px; }
-
-.pulse {
-  display: inline-block;
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--teal);
-  animation: pulse 2s infinite;
-  margin-right: 2px;
-}
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-
-/* ── Main content ── */
-.main {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+  padding-left: 14px;
 }
 
-/* ── Cover ── */
-.cover {
-  height: 200px;
-  background: linear-gradient(150deg, #0a1628 0%, #0d2240 25%, #10305a 55%, #091e3a 100%);
+/* ─── HEADER ─── */
+.header {
+  background: var(--black);
+  color: var(--white);
   position: relative;
   overflow: hidden;
-  flex-shrink: 0;
 }
 
-/* Stars */
-.stars { position: absolute; inset: 0; }
-.star {
-  position: absolute;
-  border-radius: 50%;
-  background: #fff;
-  animation: twinkle var(--dur,3s) infinite var(--del,0s);
-}
-@keyframes twinkle { 0%,100%{opacity:.9} 50%{opacity:.2} }
-
-/* Flight path SVG */
-.cover-svg {
+/* CRT scanline overlay */
+.header::after {
+  content: '';
   position: absolute;
   inset: 0;
-  width: 100%; height: 100%;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,.18) 3px,
+    rgba(0,0,0,.18) 4px
+  );
+  pointer-events: none;
+  z-index: 2;
 }
 
-.cover-badge {
-  position: absolute;
-  bottom: 16px;
-  right: 20px;
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.2);
-  backdrop-filter: blur(8px);
-  border-radius: 20px;
-  padding: 4px 12px;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-/* ── Page body ── */
-.page {
-  max-width: 900px;
+.header-inner {
+  max-width: 860px;
   margin: 0 auto;
-  padding: 0 80px 100px;
-  width: 100%;
+  padding: 32px 24px 0;
+  position: relative;
+  z-index: 3;
 }
 
-.page-icon {
-  font-size: 64px;
-  line-height: 1;
-  margin-top: -36px;
-  margin-bottom: 8px;
-  display: block;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,.2));
-}
-
-.page-title {
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -.02em;
-  color: var(--text);
-  margin-bottom: 6px;
-}
-
-.page-subtitle {
-  color: var(--muted);
-  font-size: 15px;
-  margin-bottom: 28px;
-}
-
-/* ── Properties ── */
-.props { margin-bottom: 8px; }
-
-.prop-row {
-  display: flex;
-  align-items: center;
-  min-height: 36px;
-  padding: 2px 4px;
-  border-radius: var(--radius);
-  transition: background .1s;
-}
-.prop-row:hover { background: var(--bg2); }
-
-.prop-key {
-  width: 180px;
-  flex-shrink: 0;
-  color: var(--muted);
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.prop-key-icon { font-size: 14px; }
-
-.prop-val {
-  flex: 1;
-  font-size: 14px;
-  color: var(--text);
-}
-
-/* ── Status badge ── */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 10px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: .01em;
-}
-.badge-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-.badge.scheduled  { background: #f1f1f0; color: #787774; }
-.badge.scheduled .badge-dot  { background: #787774; }
-.badge.boarding   { background: #fef3e2; color: #d9730d; }
-.badge.boarding .badge-dot   { background: #d9730d; animation: pulse 1.5s infinite; }
-.badge.active     { background: #e3f3f0; color: #0f7b6c; }
-.badge.active .badge-dot     { background: #0f7b6c; animation: pulse 2s infinite; }
-.badge.landed     { background: #ecfdf3; color: #059669; }
-.badge.landed .badge-dot     { background: #059669; }
-.badge.cancelled  { background: #fef2f2; color: #dc2626; }
-.badge.cancelled .badge-dot  { background: #dc2626; }
-.badge.diverted   { background: #f5f0fe; color: #6940a5; }
-.badge.diverted .badge-dot   { background: #6940a5; }
-.badge.test       { background: #e8f0fe; color: #1a73e8; }
-.badge.test .badge-dot       { background: #1a73e8; }
-.badge.post_landed { background: #fce7f3; color: #be185d; }
-.badge.post_landed .badge-dot { background: #be185d; }
-.badge.active_25, .badge.active_50, .badge.active_75, .badge.active_95
-  { background: #e3f3f0; color: #0f7b6c; }
-.badge.active_25 .badge-dot, .badge.active_50 .badge-dot,
-.badge.active_75 .badge-dot, .badge.active_95 .badge-dot
-  { background: #0f7b6c; animation: pulse 2s infinite; }
-
-/* ── Divider ── */
-.divider {
-  height: 1px;
-  background: var(--border);
-  margin: 28px 0;
-}
-
-/* ── Sections ── */
-.section { margin-bottom: 4px; }
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.header-eyebrow {
+  font-family: var(--px);
+  font-size: 6px;
+  letter-spacing: 0.2em;
+  color: var(--gray3);
+  text-transform: uppercase;
   margin-bottom: 16px;
 }
-.section-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text);
+
+.header-title {
+  font-family: var(--px);
+  font-size: 22px;
+  line-height: 1.5;
+  color: var(--white);
+  letter-spacing: 0.04em;
+  margin-bottom: 20px;
 }
 
-/* ── Flight progress card ── */
+.header-status-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.status-chip {
+  font-family: var(--px);
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  padding: 8px 14px;
+  border: 2px solid rgba(255,255,255,.3);
+  color: rgba(255,255,255,.6);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+}
+
+.status-chip.active, .status-chip.boarding,
+.status-chip.active_25, .status-chip.active_50,
+.status-chip.active_75, .status-chip.active_95 {
+  background: var(--white);
+  color: var(--black);
+  border-color: var(--white);
+}
+
+.status-chip.landed {
+  border-color: var(--white);
+  color: var(--white);
+}
+
+.blink {
+  width: 7px; height: 7px;
+  background: currentColor;
+  flex-shrink: 0;
+  animation: blink .9s step-end infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* flight path SVG zone */
+.flight-path-svg-wrap {
+  position: relative;
+  height: 90px;
+  z-index: 3;
+}
+.flight-path-svg-wrap svg {
+  width: 100%; height: 100%;
+  display: block;
+}
+
+/* ─── PAGE BODY ─── */
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 36px 24px 100px;
+}
+
+/* ─── SECTION ─── */
+.section { margin-bottom: 44px; }
+
+.section-heading {
+  font-family: var(--px);
+  font-size: 7px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--black);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-heading::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: var(--black);
+}
+
+/* ─── INFO TABLE ─── */
+.info-block {
+  border: 2px solid var(--black);
+}
+
+.info-row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--gray5);
+}
+.info-row:last-child { border-bottom: none; }
+
+.info-key {
+  width: 180px;
+  min-width: 180px;
+  font-family: var(--px);
+  font-size: 6px;
+  letter-spacing: 0.1em;
+  color: var(--gray3);
+  text-transform: uppercase;
+  padding: 13px 14px;
+  background: var(--gray6);
+  border-right: 2px solid var(--black);
+  display: flex;
+  align-items: center;
+}
+
+.info-val {
+  flex: 1;
+  padding: 11px 14px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--black);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* inline status tag (inside table) */
+.stag {
+  font-family: var(--px);
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  padding: 6px 10px;
+  border: 2px solid var(--black);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  text-transform: uppercase;
+}
+.stag.active, .stag.boarding,
+.stag.active_25, .stag.active_50,
+.stag.active_75, .stag.active_95 {
+  background: var(--black);
+  color: var(--white);
+}
+.stag.landed {
+  background: var(--black);
+  color: var(--white);
+}
+
+/* ─── DIVIDER ─── */
+.divider {
+  height: 2px;
+  background: var(--gray5);
+  margin: 36px 0;
+}
+
+/* ─── FLIGHT PROGRESS ─── */
 .progress-card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 28px 32px 24px;
+  border: 2px solid var(--black);
+  padding: 24px;
 }
 
 .airport-row {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
+  margin-bottom: 22px;
 }
 
-.airport {
-  text-align: center;
-  min-width: 64px;
+.ap-block { min-width: 60px; }
+.ap-block.right { text-align: right; }
+
+.ap-code {
+  font-family: var(--px);
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  color: var(--black);
 }
-.airport-code {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: .02em;
-  color: var(--text);
-}
-.airport-city {
-  font-size: 12px;
-  color: var(--muted);
+.ap-city {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gray3);
   margin-top: 2px;
 }
-.airport-time {
-  font-size: 13px;
-  color: var(--faint);
-  margin-top: 4px;
-  font-variant-numeric: tabular-nums;
+.ap-time {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--black);
+  margin-top: 6px;
+}
+.ap-tz {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--gray4);
 }
 
 .track-wrap { flex: 1; }
 
-.progress-track {
-  position: relative;
-  height: 6px;
-  background: var(--border);
-  border-radius: 10px;
-  margin-bottom: 10px;
-}
-.progress-fill {
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  background: linear-gradient(90deg, var(--teal), #2383e2);
-  border-radius: 10px;
-  transition: width 1s ease;
-}
-.plane-icon {
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 20px;
-  transition: left 1s ease;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,.15));
-  line-height: 1;
-}
-
-.progress-meta {
+/* pixel-block bar */
+.pbar-labels {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 4px;
+  font-family: var(--px);
+  font-size: 5px;
+  letter-spacing: 0.05em;
+  color: var(--gray3);
+  margin-bottom: 6px;
+  text-transform: uppercase;
 }
 
-.progress-center {
+.pbar {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  gap: 3px;
+  height: 18px;
+  margin-bottom: 8px;
+}
+.pb {
+  background: var(--gray5);
+  border: 1px solid var(--gray4);
+}
+.pb.on  { background: var(--black); border-color: var(--black); }
+.pb.tip { background: var(--gray2); border-color: var(--gray2); }
+
+.pbar-pct {
   text-align: center;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--teal);
-  margin-top: 10px;
+  font-family: var(--px);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--black);
+  margin-bottom: 4px;
+}
+.pbar-eta {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--gray3);
 }
 
-/* ── Alerts database table ── */
+/* ─── ALERTS ─── */
+.btn-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  font-family: var(--px);
+  font-size: 6px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  border: 2px solid var(--black);
+  background: var(--white);
+  color: var(--black);
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--black);
+  transition: box-shadow .06s, transform .06s;
+}
+.btn:hover  { background: var(--gray6); }
+.btn:active { box-shadow: 0 0 0 var(--black); transform: translate(3px,3px); }
+.btn:disabled { opacity: .45; cursor: default; box-shadow: 1px 1px 0 var(--gray3); }
+
+.btn.ink {
+  background: var(--black);
+  color: var(--white);
+  box-shadow: 3px 3px 0 var(--gray3);
+}
+.btn.ink:hover  { background: var(--gray1); }
+.btn.ink:active { box-shadow: 0 0 0 var(--gray3); transform: translate(3px,3px); }
+
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.chip {
+  font-family: var(--px);
+  font-size: 6px;
+  letter-spacing: 0.08em;
+  padding: 5px 10px;
+  border: 1px solid var(--black);
+  color: var(--gray2);
+  text-transform: uppercase;
+}
+.chip.on {
+  background: var(--black);
+  color: var(--white);
+}
+
 .table-wrap {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
+  border: 2px solid var(--black);
+  overflow-x: auto;
 }
 
-.alerts-table {
+.atable {
   width: 100%;
   border-collapse: collapse;
+  min-width: 600px;
 }
 
-.alerts-table thead tr {
-  background: var(--bg2);
-  border-bottom: 1px solid var(--border);
+.atable thead tr {
+  background: var(--black);
 }
-
-.alerts-table th {
-  padding: 10px 14px;
-  text-align: left;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
+.atable th {
+  font-family: var(--px);
+  font-size: 6px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  letter-spacing: .05em;
+  color: var(--white);
+  padding: 10px 12px;
+  text-align: left;
   white-space: nowrap;
 }
 
-.alerts-table td {
-  padding: 12px 14px;
-  font-size: 13px;
+.atable td {
+  padding: 12px;
+  font-size: 12px;
   vertical-align: top;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--gray5);
+  font-family: var(--mono);
+}
+.atable tr:last-child td { border-bottom: none; }
+.atable tbody tr:hover   { background: var(--gray6); }
+
+.msg-pre {
+  white-space: pre-wrap;
+  font-size: 11px;
+  line-height: 1.5;
+  max-width: 340px;
 }
 
-.alerts-table tr:last-child td { border-bottom: none; }
+.ts-cell {
+  color: var(--gray3);
+  font-size: 11px;
+  white-space: nowrap;
+}
 
-.alerts-table tbody tr:hover { background: var(--bg2); }
+.sent-ok   { font-family: var(--px); font-size: 6px; letter-spacing: 0.1em; color: var(--black); }
+.sent-err  { font-family: var(--px); font-size: 6px; letter-spacing: 0.1em; color: var(--gray3); text-decoration: line-through; }
+.sent-demo { font-family: var(--px); font-size: 6px; letter-spacing: 0.1em; color: var(--gray4); }
 
-.alerts-table .empty-row td {
+.empty-cell {
   text-align: center;
-  color: var(--muted);
-  padding: 40px 0;
-  font-size: 14px;
+  padding: 48px 0;
+  color: var(--gray3);
+  font-family: var(--px);
+  font-size: 7px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-.msg-text {
-  max-width: 360px;
-  white-space: pre-line;
-  line-height: 1.4;
-  font-size: 13px;
-}
-
-.sent-icon { font-size: 15px; }
-.sent-ok   { color: #059669; }
-.sent-fail { color: #dc2626; }
-.sent-demo { color: var(--muted); }
-
-.ts-text { color: var(--muted); font-size: 12px; white-space: nowrap; }
-
-/* ── Buttons ── */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--bg);
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background .1s, box-shadow .1s;
-  font-family: inherit;
-}
-.btn:hover { background: var(--bg2); }
-.btn:active { background: var(--bg3); }
-.btn:disabled { opacity: .5; cursor: default; }
-.btn.primary {
-  background: var(--text);
-  color: #fff;
-  border-color: var(--text);
-}
-.btn.primary:hover { background: #555; }
-
-/* ── Callout ── */
+/* ─── CONFIG ─── */
 .callout {
-  display: flex;
-  gap: 10px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 2px solid var(--black);
+  border-left: 6px solid var(--black);
   padding: 14px 16px;
   margin-bottom: 20px;
-  font-size: 14px;
+  font-size: 13px;
+  background: var(--gray6);
   line-height: 1.6;
-  color: var(--text);
 }
-.callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
 
-/* ── Config card ── */
 .config-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 0;
+  border: 2px solid var(--black);
 }
-.config-card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px 18px;
+.config-cell {
+  padding: 16px;
+  border: 1px solid var(--gray5);
 }
-.config-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
-.config-value { font-size: 14px; font-weight: 500; color: var(--text); }
+.config-lbl {
+  font-family: var(--px);
+  font-size: 6px;
+  letter-spacing: 0.12em;
+  color: var(--gray3);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.config-val {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--black);
+  font-weight: 700;
+}
 
 .setup-box {
-  background: #0a1628;
-  color: #e2e8f0;
-  border-radius: 10px;
+  background: var(--black);
+  color: var(--white);
   padding: 24px 28px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.8;
+  margin-top: 2px;
 }
-.setup-box h3 { color: #fff; font-size: 16px; margin-bottom: 12px; }
+.setup-box h3 {
+  font-family: var(--px);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  color: var(--white);
+  margin-bottom: 16px;
+}
 .setup-box ol { padding-left: 20px; }
 .setup-box li { margin-bottom: 6px; }
 .setup-box code {
   background: rgba(255,255,255,.12);
   padding: 1px 6px;
-  border-radius: 4px;
-  font-family: 'SF Mono', 'Fira Code', monospace;
-  font-size: 13px;
+  font-family: var(--mono);
+  font-size: 12px;
 }
-.setup-box a { color: #60a5fa; }
+.setup-box a { color: var(--gray4); }
 
-/* ── Toggle sidebar button ── */
-.toggle-btn {
+/* ─── TOAST ─── */
+.toast {
   position: fixed;
-  top: 14px;
-  left: 14px;
-  z-index: 100;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 6px 10px;
-  font-size: 13px;
-  cursor: pointer;
-  display: none;
-}
-
-/* ── Refresh indicator ── */
-.refresh-toast {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  background: var(--text);
-  color: #fff;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 13px;
+  bottom: 20px;
+  right: 20px;
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--px);
+  font-size: 6px;
+  letter-spacing: 0.1em;
+  line-height: 1.8;
+  padding: 14px 18px;
+  border: 2px solid var(--gray3);
+  box-shadow: 4px 4px 0 var(--gray4);
+  text-transform: uppercase;
+  max-width: 280px;
   opacity: 0;
-  transform: translateY(10px);
-  transition: all .25s;
+  transform: translateY(6px);
+  transition: all .2s;
   pointer-events: none;
   z-index: 200;
 }
-.refresh-toast.show { opacity: 1; transform: translateY(0); }
+.toast.show { opacity: 1; transform: translateY(0); }
 
-/* ── Alert summary chips ── */
-.alert-chips {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
-}
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  color: var(--muted);
-}
-.chip.highlight { background: #e3f3f0; border-color: #b2ddd8; color: var(--teal); }
-
-/* ── Backdrop (mobile) ── */
-.backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-  z-index: 40;
-  transition: opacity .2s;
-}
-.backdrop.show { display: block; }
-
-/* ── Responsive ── */
-@media (max-width: 820px) {
-  .sidebar {
-    position: fixed;
-    z-index: 50;
-    height: 100vh;
-    width: var(--sidebar) !important;
-    min-width: var(--sidebar) !important;
-    transform: translateX(-100%);
-    transition: transform .25s ease;
-    box-shadow: none;
-    overflow: hidden;
-  }
-  .sidebar.open {
-    transform: translateX(0);
-    box-shadow: 4px 0 24px rgba(0,0,0,.18);
-  }
-  .toggle-btn { display: block; }
-  .main { margin-left: 0 !important; }
-  .page { padding: 0 20px 80px; }
-  .config-grid { grid-template-columns: 1fr; }
-  .airport-row { gap: 12px; }
-  .page-title { font-size: 28px; }
+/* ─── RESPONSIVE ─── */
+@media (max-width: 640px) {
+  .header-title  { font-size: 15px; }
+  .page          { padding: 24px 16px 80px; }
+  .info-key      { width: 130px; min-width: 130px; font-size: 5px; }
+  .config-grid   { grid-template-columns: 1fr; }
+  .airport-row   { gap: 10px; }
+  .ap-code       { font-size: 12px; }
+  .atable        { min-width: 480px; }
 }
 </style>
 </head>
 <body>
 
-<button class="toggle-btn" onclick="toggleSidebar()">☰</button>
-<div class="backdrop" id="backdrop" onclick="closeSidebar()"></div>
-<div class="refresh-toast" id="toast"></div>
+<div class="toast" id="toast"></div>
 
-<div class="app">
+<!-- ─── TOP NAV ─── -->
+<nav class="top-nav">
+  <div class="nav-logo">✈ TS1691</div>
+  <button class="nav-item active" onclick="scrollToTop()">VOL</button>
+  <button class="nav-item" onclick="scrollTo2('#progress-section')">PROGRESSION</button>
+  <button class="nav-item" onclick="scrollTo2('#alerts-section')">ALERTES</button>
+  <button class="nav-item" onclick="scrollTo2('#config-section')">CONFIG</button>
+  <button class="nav-item" onclick="checkNow()" id="nav-check-btn">VÉRIFIER</button>
+  <div class="nav-pulse" id="nav-last">—</div>
+</nav>
 
-  <!-- ── Sidebar ── -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-top">
-      <div class="workspace">
-        <span class="workspace-icon">✈️</span>
-        <span>Mon Tracker</span>
+<!-- ─── HEADER ─── -->
+<header class="header" id="page-top">
+  <div class="header-inner">
+    <div class="header-eyebrow">AIR TRANSAT · ATH → YUL · 7 426 KM · ~10H 15MIN</div>
+    <h1 class="header-title">GABRIELLE</h1>
+    <div class="header-status-row">
+      <div class="status-chip scheduled" id="header-chip">
+        <span class="blink"></span>
+        <span id="header-chip-text">CHARGEMENT…</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.4)" id="header-source-text"></div>
+    </div>
+  </div>
+
+  <!-- Flight path arc -->
+  <div class="flight-path-svg-wrap">
+    <svg viewBox="0 0 1200 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <path id="arc" d="M 80,80 C 300,10 800,5 1100,68"
+            stroke="rgba(255,255,255,0.25)" fill="none" stroke-width="1.5"
+            stroke-dasharray="8,6"/>
+      <text id="coverPlane" font-size="16" fill="white" text-anchor="middle" dominant-baseline="middle">✈</text>
+      <circle cx="80"   cy="80" r="3.5" fill="rgba(255,255,255,0.5)"/>
+      <circle cx="1100" cy="68" r="3.5" fill="rgba(255,255,255,0.5)"/>
+      <text x="80"   y="95" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="9"  font-family="'Courier New',monospace" letter-spacing="1">ATH</text>
+      <text x="1100" y="84" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="9"  font-family="'Courier New',monospace" letter-spacing="1">YUL</text>
+    </svg>
+  </div>
+</header>
+
+<!-- ─── PAGE ─── -->
+<main class="page">
+
+  <!-- Properties -->
+  <div class="section">
+    <div class="section-heading">STATUT DU VOL</div>
+    <div class="info-block">
+      <div class="info-row">
+        <div class="info-key">STATUT</div>
+        <div class="info-val">
+          <span class="stag scheduled" id="status-badge">
+            <span class="blink"></span>
+            <span id="status-text">CHARGEMENT</span>
+          </span>
+        </div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">COMPAGNIE</div>
+        <div class="info-val" id="prop-airline">Air Transat</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">DÉPART (ATH)</div>
+        <div class="info-val" id="prop-dep">Athens — Aéroport International</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">ARRIVÉE (YUL)</div>
+        <div class="info-val" id="prop-arr">Montréal-Trudeau</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">APPAREIL</div>
+        <div class="info-val" id="prop-aircraft">—</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">ALERTES SMS</div>
+        <div class="info-val">+1 418‑262‑7032</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">DERNIÈRE VÉRIF.</div>
+        <div class="info-val" id="prop-last">—</div>
+      </div>
+      <div class="info-row" id="live-row" style="display:none">
+        <div class="info-key">POSITION LIVE</div>
+        <div class="info-val" id="prop-live">—</div>
+      </div>
+      <div class="info-row">
+        <div class="info-key">SOURCE</div>
+        <div class="info-val" id="prop-source">Chargement…</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Progress -->
+  <div class="section" id="progress-section">
+    <div class="section-heading">PROGRESSION DU VOL</div>
+    <div class="progress-card">
+      <div class="airport-row">
+        <div class="ap-block">
+          <div class="ap-code">ATH</div>
+          <div class="ap-city">Athènes</div>
+          <div class="ap-time" id="dep-time">—</div>
+          <div class="ap-tz" id="dep-tz"></div>
+        </div>
+
+        <div class="track-wrap">
+          <div class="pbar-labels">
+            <span>DÉPART</span>
+            <span id="prog-pct-label">—</span>
+            <span>ARRIVÉE</span>
+          </div>
+          <div class="pbar" id="pbar"></div>
+          <div class="pbar-pct" id="pbar-pct">— %</div>
+          <div class="pbar-eta" id="pbar-eta">Calcul en cours…</div>
+        </div>
+
+        <div class="ap-block right">
+          <div class="ap-code">YUL</div>
+          <div class="ap-city">Montréal</div>
+          <div class="ap-time" id="arr-time">—</div>
+          <div class="ap-tz" id="arr-tz"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Alerts -->
+  <div class="section" id="alerts-section">
+    <div class="section-heading">ALERTES SMS</div>
+
+    <div class="btn-row">
+      <button class="btn" onclick="checkNow()" id="check-btn">↻ VÉRIFIER MAINTENANT</button>
+      <button class="btn ink" onclick="sendTestSMS()" id="test-btn">▶ ENVOYER SMS TEST</button>
+    </div>
+
+    <div class="chips" id="alert-chips"></div>
+
+    <div class="table-wrap">
+      <table class="atable">
+        <thead>
+          <tr>
+            <th>STATUT</th>
+            <th>MESSAGE</th>
+            <th>HEURE</th>
+            <th>ENVOYÉ</th>
+          </tr>
+        </thead>
+        <tbody id="alerts-tbody">
+          <tr><td colspan="4" class="empty-cell">CHARGEMENT…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Config -->
+  <div class="section" id="config-section">
+    <div class="section-heading">CONFIGURATION</div>
+
+    <div class="callout" id="demo-callout">
+      MODE DÉMO — Le tracker fonctionne avec des données simulées.
+      Configurez vos clés API dans <code style="background:var(--gray5);padding:1px 5px">.env</code> pour activer les vraies données et les SMS.
+    </div>
+
+    <div class="config-grid">
+      <div class="config-cell">
+        <div class="config-lbl">Numéro de vol</div>
+        <div class="config-val">TS1691</div>
+      </div>
+      <div class="config-cell">
+        <div class="config-lbl">Téléphone alertes</div>
+        <div class="config-val">+1 418-262-7032</div>
+      </div>
+      <div class="config-cell">
+        <div class="config-lbl">Fréquence vérifications</div>
+        <div class="config-val">Toutes les 45 min</div>
+      </div>
+      <div class="config-cell">
+        <div class="config-lbl">Types d'alertes</div>
+        <div class="config-val" style="font-size:12px">Embarquement · En Route × 4 · Atterri · Bisou</div>
       </div>
     </div>
 
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">Pages</div>
-      <a class="nav-item active" onclick="scrollToTop()">
-        <span class="nav-icon">✈️</span> Vol TS1691
-      </a>
-      <a class="nav-item" onclick="scrollTo2('#progress-section')">
-        <span class="nav-icon">🗺️</span> Progression
-      </a>
-      <a class="nav-item" onclick="scrollTo2('#alerts-section')">
-        <span class="nav-icon">📱</span> Alertes SMS
-      </a>
-      <a class="nav-item" onclick="scrollTo2('#config-section')">
-        <span class="nav-icon">⚙️</span> Configuration
-      </a>
-    </nav>
-
-    <div class="sidebar-footer">
-      <div class="nav-item" onclick="checkNow()" id="sidebar-check-btn">
-        <span class="nav-icon">🔄</span> Vérifier maintenant
-      </div>
-      <div class="nav-item" style="cursor:default">
-        <span class="pulse"></span>
-        <span id="sidebar-last" style="font-size:12px;color:var(--muted)">Chargement…</span>
-      </div>
+    <div class="setup-box">
+      <h3>MISE EN ROUTE</h3>
+      <ol>
+        <li>Installer : <code>npm install</code></li>
+        <li>Config : <code>cp .env.example .env</code></li>
+        <li>Clés API dans <code>.env</code> — AviationStack + Twilio</li>
+        <li>Lancer : <code>npm start</code> → <code>http://localhost:3000</code></li>
+      </ol>
     </div>
-  </aside>
+  </div>
 
-  <!-- ── Main ── -->
-  <div class="main" id="main">
-
-    <!-- Cover -->
-    <div class="cover">
-      <div class="stars" id="stars"></div>
-      <svg class="cover-svg" viewBox="0 0 1200 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%"   stop-color="rgba(255,255,255,0.05)"/>
-            <stop offset="40%"  stop-color="rgba(255,255,255,0.45)"/>
-            <stop offset="100%" stop-color="rgba(255,255,255,0.1)"/>
-          </linearGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="2" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
-        <!-- Great-circle arc ATH → YUL -->
-        <path id="arc" d="M 80,150 C 280,30 750,15 1100,130"
-              stroke="url(#arcGrad)" fill="none" stroke-width="1.5"
-              stroke-dasharray="6,5"/>
-        <!-- Animated plane along path -->
-        <text id="coverPlane" font-size="22" fill="white" filter="url(#glow)" text-anchor="middle">✈</text>
-        <!-- ATH dot -->
-        <circle cx="80" cy="150" r="5" fill="rgba(255,255,255,0.7)"/>
-        <text x="80" y="168" text-anchor="middle" fill="rgba(255,255,255,0.6)"
-              font-size="11" font-family="Inter,sans-serif" font-weight="600">ATH</text>
-        <!-- YUL dot -->
-        <circle cx="1100" cy="130" r="5" fill="rgba(255,255,255,0.7)"/>
-        <text x="1100" y="148" text-anchor="middle" fill="rgba(255,255,255,0.6)"
-              font-size="11" font-family="Inter,sans-serif" font-weight="600">YUL</text>
-      </svg>
-      <div class="cover-badge" id="cover-status-badge">✈️ Gabrielle · TS1691 · Chargement…</div>
-    </div>
-
-    <!-- Page content -->
-    <div class="page" id="page-top">
-
-      <span class="page-icon">✈️</span>
-      <h1 class="page-title">Gabrielle · Vol TS1691</h1>
-      <p class="page-subtitle">Athens (ATH) → Montréal-Trudeau (YUL) &nbsp;·&nbsp; Air Transat &nbsp;·&nbsp; 7 426 km &nbsp;·&nbsp; 10h 15min</p>
-
-      <!-- Properties -->
-      <div class="props">
-        <div class="prop-row">
-          <div class="prop-key"><span class="prop-key-icon">🚦</span> Statut</div>
-          <div class="prop-val"><span class="badge scheduled" id="status-badge"><span class="badge-dot"></span><span id="status-text">Chargement…</span></span></div>
-        </div>
-        <div class="prop-row">
-          <div class="prop-key"><span class="prop-key-icon">🏢</span> Compagnie</div>
-          <div class="prop-val" id="prop-airline">Air Transat</div>
-        </div>
-        <div class="prop-row">
-          <div class="prop-key"><span class="prop-key-icon">🛫</span> Départ (Athènes)</div>
-          <div class="prop-val" id="prop-dep">Athens — Aéroport International</div>
-        </div>
-        <div class="prop-row">
-          <div class="prop-key"><span class="prop-key-icon">🛬</span> Arrivée prévue (MTL)</div>
-          <div class="prop-val" id="prop-arr">Montréal-Trudeau (YUL)</div>
-        </div>
-        <div class="prop-row">
-          <div class="prop-key"><span class="prop-key-icon">✈️</span> Appareil</div>
-          <div class="prop-val" id="prop-aircraft">—</div>
-        </div>
-        <div class="prop-row">
-          <div class="prop-key"><span class="prop-key-icon">📱</span> Alertes SMS</div>
-          <div class="prop-val">+1 418‑262‑7032</div>
-        </div>
-        <div class="prop-row">
-          <div class="prop-key"><span class="prop-key-icon">🕐</span> Dernière vérif.</div>
-          <div class="prop-val" id="prop-last">—</div>
-        </div>
-        <div class="prop-row" id="live-row" style="display:none">
-          <div class="prop-key"><span class="prop-key-icon">🛰️</span> Position live</div>
-          <div class="prop-val" id="prop-live">—</div>
-        </div>
-        <div class="prop-row" id="source-row">
-          <div class="prop-key"><span class="prop-key-icon">📡</span> Source</div>
-          <div class="prop-val" id="prop-source"><span style="color:var(--muted)">Chargement…</span></div>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- Flight progress -->
-      <div class="section" id="progress-section">
-        <div class="section-header">
-          <h2 class="section-title">🗺️ Progression du vol</h2>
-        </div>
-        <div class="progress-card">
-          <div class="airport-row">
-            <div class="airport">
-              <div class="airport-code">ATH</div>
-              <div class="airport-city">Athènes</div>
-              <div class="airport-time" id="dep-time">—</div>
-            </div>
-            <div class="track-wrap">
-              <div class="progress-track">
-                <div class="progress-fill" id="prog-fill" style="width:0%"></div>
-                <div class="plane-icon" id="prog-plane" style="left:0%">✈</div>
-              </div>
-              <div class="progress-meta">
-                <span>Départ</span>
-                <span id="prog-pct" style="font-weight:600;color:var(--teal)">—</span>
-                <span>Arrivée</span>
-              </div>
-              <div class="progress-center" id="prog-label">Calcul en cours…</div>
-            </div>
-            <div class="airport" style="text-align:right">
-              <div class="airport-code">YUL</div>
-              <div class="airport-city">Montréal</div>
-              <div class="airport-time" id="arr-time">—</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- Alerts section -->
-      <div class="section" id="alerts-section">
-        <div class="section-header">
-          <h2 class="section-title">📱 Alertes SMS</h2>
-          <div style="display:flex;gap:8px">
-            <button class="btn" onclick="checkNow()" id="check-btn">🔄 Vérifier maintenant</button>
-            <button class="btn primary" onclick="sendTestSMS()" id="test-btn">📱 Envoyer SMS test</button>
-          </div>
-        </div>
-
-        <div class="alert-chips" id="alert-chips"></div>
-
-        <div class="table-wrap">
-          <table class="alerts-table">
-            <thead>
-              <tr>
-                <th>Statut</th>
-                <th>Message</th>
-                <th>Heure</th>
-                <th>Envoyé</th>
-              </tr>
-            </thead>
-            <tbody id="alerts-tbody">
-              <tr class="empty-row"><td colspan="4">Chargement des alertes…</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- Config section -->
-      <div class="section" id="config-section">
-        <div class="section-header">
-          <h2 class="section-title">⚙️ Configuration</h2>
-        </div>
-
-        <div class="callout">
-          <span class="callout-icon">💡</span>
-          <div>
-            <strong>Mode démo actif</strong> — Le tracker fonctionne avec des données simulées.
-            Configurez vos clés API dans <code style="background:var(--border);padding:1px 5px;border-radius:3px">.env</code> pour activer les vraies données et les SMS.
-          </div>
-        </div>
-
-        <div class="config-grid">
-          <div class="config-card">
-            <div class="config-label">Numéro de vol</div>
-            <div class="config-value">TS1691</div>
-          </div>
-          <div class="config-card">
-            <div class="config-label">Téléphone alertes</div>
-            <div class="config-value">+1 418-262-7032</div>
-          </div>
-          <div class="config-card">
-            <div class="config-label">Fréquence des vérifications</div>
-            <div class="config-value">Toutes les 2 heures</div>
-          </div>
-          <div class="config-card">
-            <div class="config-label">Alertes déclenchées</div>
-            <div class="config-value">Embarquement · En Route · Atterri</div>
-          </div>
-        </div>
-
-        <div class="setup-box">
-          <h3>🚀 Mise en route en 4 étapes</h3>
-          <ol>
-            <li>Installer les dépendances : <code>npm install</code></li>
-            <li>Copier le fichier de config : <code>cp .env.example .env</code></li>
-            <li>Remplir les clés API dans <code>.env</code> :<br>
-              &nbsp;&nbsp;&nbsp;• <a href="https://aviationstack.com" target="_blank">aviationstack.com</a> — API de suivi de vol (gratuit 500 req/mois)<br>
-              &nbsp;&nbsp;&nbsp;• <a href="https://twilio.com" target="_blank">twilio.com</a> — SMS &amp; WhatsApp (essai gratuit)
-            </li>
-            <li>Lancer le serveur : <code>npm start</code> &nbsp;→&nbsp; <code>http://localhost:3000</code></li>
-          </ol>
-        </div>
-      </div>
-
-    </div><!-- /page -->
-  </div><!-- /main -->
-</div><!-- /app -->
+</main>
 
 <script>
-// ── Demo / fallback data ───────────────────────────────────────────────────
+// ── Demo data ──────────────────────────────────────────────────────────────
 const DEMO = {
   flight: {
     flight_status: 'scheduled',
-    departure: {
-      airport: 'Athens International Airport "Eleftherios Venizelos"', iata: 'ATH',
-      timezone: 'Europe/Athens', scheduled: null
-    },
-    arrival: {
-      airport: 'Montréal-Pierre Elliott Trudeau International Airport', iata: 'YUL',
-      timezone: 'America/Toronto', scheduled: null, estimated: null
-    },
-    flight:   { iata: 'TS1691', number: '691' },
+    departure:  { airport: 'Athens International Airport "Eleftherios Venizelos"', iata: 'ATH', timezone: 'Europe/Athens', scheduled: null },
+    arrival:    { airport: 'Montréal-Pierre Elliott Trudeau International Airport',  iata: 'YUL', timezone: 'America/Toronto', scheduled: null, estimated: null },
+    flight:   { iata: 'TS1691', number: '1691' },
     airline:  { name: 'Air Transat', iata: 'TS' },
     aircraft: { registration: 'C-GTSI', iata: 'A332' }
   },
   alerts: []
 };
 
-// ── Formatting helpers ─────────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────
 function fmtTime(iso, tz='America/Toronto') {
   if (!iso) return '—';
   try {
@@ -863,186 +821,56 @@ function fmtTime(iso, tz='America/Toronto') {
 function timeAgo(iso) {
   if (!iso) return '—';
   const s = Math.floor((Date.now() - new Date(iso)) / 1000);
-  if (s < 60)   return `Il y a ${s}s`;
-  if (s < 3600) return `Il y a ${Math.floor(s/60)}min`;
-  if (s < 86400) return `Il y a ${Math.floor(s/3600)}h`;
-  return fmtTime(iso);
+  if (s < 60)   return `${s}s`;
+  if (s < 3600) return `${Math.floor(s/60)}min`;
+  return `${Math.floor(s/3600)}h`;
 }
 
-function duration(ms) {
+function durStr(ms) {
   if (!ms || ms < 0) return '—';
   const h = Math.floor(ms / 3600000);
   const m = Math.floor((ms % 3600000) / 60000);
   return h > 0 ? `${h}h ${m}min restantes` : `${m}min restantes`;
 }
 
-// ── Status label map ───────────────────────────────────────────────────────
-const STATUS = {
-  scheduled:'Prévu', active:'En Route', boarding:'Embarquement',
-  active_25:'✈️ En Route 1/4', active_50:'✈️ Mi-chemin 2/4',
-  active_75:'✈️ En Route 3/4', active_95:'✈️ Approche 4/4',
-  landed:'Atterri', post_landed:'💋 Bisou!', cancelled:'Annulé', diverted:'Détourné', unknown:'Inconnu'
+const STATUS_LABELS = {
+  scheduled:'PRÉVU', active:'EN ROUTE', boarding:'EMBARQUEMENT',
+  active_25:'EN ROUTE 1/4', active_50:'MI-CHEMIN 2/4',
+  active_75:'EN ROUTE 3/4', active_95:'APPROCHE 4/4',
+  landed:'ATTERRI', post_landed:'BISOU!', cancelled:'ANNULÉ',
+  diverted:'DÉTOURNÉ', unknown:'INCONNU', test:'TEST'
 };
 
-// ── Generate star field ────────────────────────────────────────────────────
-function makeStars() {
-  const el = document.getElementById('stars');
-  for (let i = 0; i < 80; i++) {
-    const s = document.createElement('div');
-    s.className = 'star';
-    const sz = Math.random() * 2.5 + 0.5;
-    s.style.cssText = `
-      left:${Math.random()*100}%;top:${Math.random()*100}%;
-      width:${sz}px;height:${sz}px;
-      --dur:${2+Math.random()*4}s;--del:${-Math.random()*4}s;
-      opacity:${0.2+Math.random()*0.8};
-    `;
-    el.appendChild(s);
-  }
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// ── Animate plane on cover arc ─────────────────────────────────────────────
+// ── Cover plane animation ──────────────────────────────────────────────────
 function animateCoverPlane(pct) {
-  // Cubic bezier points for path: M 80,150 C 280,30 750,15 1100,130
-  const t = Math.max(0, Math.min(1, pct / 100));
-  const p0={x:80,y:150}, p1={x:280,y:30}, p2={x:750,y:15}, p3={x:1100,y:130};
-  const mt=(v)=>1-v;
+  const t  = Math.max(0, Math.min(1, pct / 100));
+  const p0 = {x:80,y:80}, p1 = {x:300,y:10}, p2 = {x:800,y:5}, p3 = {x:1100,y:68};
+  const mt = v => 1 - v;
   const bx = mt(t)**3*p0.x + 3*mt(t)**2*t*p1.x + 3*mt(t)*t**2*p2.x + t**3*p3.x;
   const by = mt(t)**3*p0.y + 3*mt(t)**2*t*p1.y + 3*mt(t)*t**2*p2.y + t**3*p3.y;
   const plane = document.getElementById('coverPlane');
-  if (plane) { plane.setAttribute('x', bx-11); plane.setAttribute('y', by+8); }
+  if (plane) { plane.setAttribute('x', bx); plane.setAttribute('y', by); }
 }
 
-// ── Update UI ──────────────────────────────────────────────────────────────
-function updateUI(data) {
-  const f = data?.flight;
-  const alerts = data?.alerts || [];
-  const lastCheck = data?.lastCheck;
-
-  // Sidebar last check
-  document.getElementById('sidebar-last').textContent = lastCheck
-    ? `Mis à jour ${timeAgo(lastCheck)}` : 'Jamais vérifié';
-
-  // Last check prop
-  document.getElementById('prop-last').textContent = lastCheck
-    ? fmtTime(lastCheck) : '—';
-
-  if (!f) return;
-
-  const status = f.flight_status || 'unknown';
-  const statusLabel = STATUS[status] || status;
-
-  // Status badge
-  const badge = document.getElementById('status-badge');
-  badge.className = `badge ${status}`;
-  document.getElementById('status-text').textContent = statusLabel;
-
-  // Cover badge
-  document.getElementById('cover-status-badge').textContent =
-    `✈️ Gabrielle · TS1691 · ${statusLabel}`;
-
-  // Properties
-  const dep = f.departure, arr = f.arrival;
-  document.getElementById('prop-dep').innerHTML =
-    `${dep?.airport || '—'} &nbsp;<span style="color:var(--muted)">(${dep?.iata || 'ATH'})</span>
-     &nbsp;·&nbsp; <strong>${fmtTime(dep?.actual || dep?.scheduled, 'Europe/Athens')}</strong>
-     <span style="color:var(--muted);font-size:12px">heure locale Athènes</span>`;
-
-  const eta = arr?.estimated || arr?.scheduled;
-  document.getElementById('prop-arr').innerHTML =
-    `${arr?.airport || '—'} &nbsp;<span style="color:var(--muted)">(${arr?.iata || 'YUL'})</span>
-     &nbsp;·&nbsp; <strong>${fmtTime(eta,'America/Toronto')}</strong> <span style="color:var(--muted);font-size:12px">heure de Montréal</span>`;
-
-  if (f.airline?.name) document.getElementById('prop-airline').textContent = f.airline.name;
-  document.getElementById('prop-aircraft').textContent =
-    f.aircraft ? `${f.aircraft.registration || ''} (${f.aircraft.iata || ''})`.trim() : '—';
-
-  // Live position (ADSB.fi)
-  const liveRow = document.getElementById('live-row');
-  if (f.live && (f.live.altitude_ft || f.live.speed_kmh)) {
-    liveRow.style.display = 'flex';
-    const parts = [];
-    if (f.live.altitude_ft) parts.push(`Alt: ${f.live.altitude_ft.toLocaleString('fr-CA')} ft`);
-    if (f.live.speed_kmh)   parts.push(`${f.live.speed_kmh} km/h`);
-    if (f.live.heading != null) parts.push(`Cap: ${f.live.heading}°`);
-    document.getElementById('prop-live').textContent = parts.join(' · ');
-  } else {
-    liveRow.style.display = 'none';
+// ── Pixel progress bar ─────────────────────────────────────────────────────
+function updatePixelBar(pct) {
+  const container = document.getElementById('pbar');
+  container.innerHTML = '';
+  const filled = Math.min(20, Math.round(pct / 5));
+  for (let i = 0; i < 20; i++) {
+    const b = document.createElement('div');
+    b.className = 'pb' + (i < filled ? ' on' : i === filled ? ' tip' : '');
+    container.appendChild(b);
   }
-
-  // Source indicator
-  const src = f.live?.source || data?.source;
-  const sourceProp = document.getElementById('prop-source');
-  if (src === 'adsb.fi') {
-    sourceProp.innerHTML = '<span style="color:var(--teal);font-weight:600">🟢 ADSB.fi (temps réel)</span>';
-  } else if (src === 'live') {
-    sourceProp.innerHTML = '<span style="color:var(--teal)">🟢 AviationStack (live)</span>';
-  } else {
-    sourceProp.innerHTML = '<span style="color:var(--orange)">⚠️ Horaire estimé — vol pas encore parti</span>';
-  }
-
-  // Progress bar
-  const depTime = new Date(dep?.actual || dep?.scheduled);
-  const arrTime = new Date(arr?.estimated || arr?.scheduled);
-  const total = arrTime - depTime;
-  const elapsed = Date.now() - depTime;
-  const pct = status === 'landed' ? 100
-              : status === 'scheduled' ? 0
-              : Math.max(0, Math.min(98, (elapsed / total) * 100));
-
-  document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('prog-plane').style.left  = pct + '%';
-  document.getElementById('prog-pct').textContent   = Math.round(pct) + '%';
-  document.getElementById('dep-time').innerHTML = `${fmtTime(dep?.actual || dep?.scheduled, 'Europe/Athens')}<br><span style="font-size:11px;color:var(--faint)">heure Athènes</span>`;
-  document.getElementById('arr-time').innerHTML = `${fmtTime(eta, 'America/Toronto')}<br><span style="font-size:11px;color:var(--faint)">heure MTL</span>`;
-
-  const remaining = arrTime - Date.now();
-  document.getElementById('prog-label').textContent =
-    status === 'landed'    ? '🏁 Atterri à Montréal!' :
-    status === 'scheduled' ? '⏳ Vol pas encore parti' :
-    status === 'active'    ? duration(remaining) :
-    status === 'boarding'  ? '🛫 Embarquement en cours…' :
-    statusLabel;
-
-  animateCoverPlane(pct);
-
-  // Alert chips summary
-  const sent = alerts.filter(a => a.sent).length;
-  const chips = document.getElementById('alert-chips');
-  chips.innerHTML =
-    `<div class="chip highlight">${alerts.length} alerte${alerts.length!==1?'s':''} enregistrée${alerts.length!==1?'s':''}</div>
-     <div class="chip">${sent} SMS envoyé${sent!==1?'s':''}</div>
-     <div class="chip">📱 +1 418-262-7032</div>`;
-
-  // Alerts table
-  const tbody = document.getElementById('alerts-tbody');
-  if (!alerts.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="4">Aucune alerte pour l'instant. Les alertes seront envoyées lors des changements de statut.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = alerts.map(a => `
-    <tr>
-      <td><span class="badge ${a.status}"><span class="badge-dot"></span>${a.statusLabel || STATUS[a.status] || a.status}</span></td>
-      <td><div class="msg-text">${escHtml(a.message || '')}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:4px">→ ${a.phone || ''}</div></td>
-      <td class="ts-text">${fmtTime(a.timestamp)}</td>
-      <td>
-        ${a.error
-          ? `<span class="sent-icon sent-fail" title="${escHtml(a.error)}">✗ Erreur</span>`
-          : a.sent
-          ? `<span class="sent-icon sent-ok">✓ Envoyé</span>`
-          : `<span class="sent-icon sent-demo">— Démo</span>`}
-      </td>
-    </tr>
-  `).join('');
+  document.getElementById('pbar-pct').textContent = Math.round(pct) + '%';
+  document.getElementById('prog-pct-label').textContent = Math.round(pct) + '%';
 }
 
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// ── Haversine (client-side mirror of server logic) ─────────────────────────
+// ── Haversine ─────────────────────────────────────────────────────────────
 function haversineJS(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -1067,11 +895,140 @@ function buildFlightFromADSB(ac) {
     flight_status: onGround ? 'landed' : 'active',
     departure: { airport: 'Athens International Airport "Eleftherios Venizelos"', iata: 'ATH', timezone: 'Europe/Athens', scheduled: depISO, actual: depISO },
     arrival:   { airport: 'Montréal-Pierre Elliott Trudeau International Airport',  iata: 'YUL', timezone: 'America/Toronto', scheduled: arrISO, estimated: arrISO },
-    flight:   { iata: 'TS1691', icao: 'TSC1691', number: '691' },
+    flight:   { iata: 'TS1691', icao: 'TSC1691', number: '1691' },
     airline:  { name: 'Air Transat', iata: 'TS', icao: 'TSC' },
     aircraft: { registration: ac.r || 'C-GTSI', iata: ac.t || 'A332' },
-    live: { latitude: ac.lat || null, longitude: ac.lon || null, altitude_ft: altFt, speed_kmh: speedKmh, heading: ac.track ? Math.round(ac.track) : null, source: 'adsb.fi' }
+    live: { latitude: ac.lat||null, longitude: ac.lon||null, altitude_ft: altFt, speed_kmh: speedKmh, heading: ac.track ? Math.round(ac.track) : null, source: 'adsb.fi' }
   };
+}
+
+// ── Update UI ─────────────────────────────────────────────────────────────
+function updateUI(data) {
+  const f       = data?.flight;
+  const alerts  = data?.alerts || [];
+  const lastChk = data?.lastCheck;
+
+  // Nav last check
+  const navLast = document.getElementById('nav-last');
+  if (navLast) navLast.textContent = lastChk ? `MIS À JOUR: IL Y A ${timeAgo(lastChk)}` : '';
+
+  document.getElementById('prop-last').textContent = lastChk ? fmtTime(lastChk) : '—';
+
+  if (!f) return;
+
+  const status      = f.flight_status || 'unknown';
+  const statusLabel = STATUS_LABELS[status] || status.toUpperCase();
+
+  // Header chip
+  const chip = document.getElementById('header-chip');
+  chip.className = `status-chip ${status}`;
+  document.getElementById('header-chip-text').textContent = statusLabel;
+
+  // Header source text
+  const src = f.live?.source || data?.source;
+  const srcEl = document.getElementById('header-source-text');
+  if (src === 'adsb.fi') srcEl.textContent = '● ADSB.FI TEMPS RÉEL';
+  else if (src === 'live') srcEl.textContent = '● AVIATIONSTACK LIVE';
+  else srcEl.textContent = '';
+
+  // Table status badge
+  const badge = document.getElementById('status-badge');
+  badge.className = `stag ${status}`;
+  document.getElementById('status-text').textContent = statusLabel;
+
+  // Properties
+  const dep = f.departure, arr = f.arrival;
+  document.getElementById('prop-dep').innerHTML =
+    `${dep?.airport || '—'} (${dep?.iata||'ATH'}) &nbsp;·&nbsp; <strong>${fmtTime(dep?.actual||dep?.scheduled,'Europe/Athens')}</strong> <span style="color:var(--gray3);font-size:11px">heure Athènes</span>`;
+
+  const eta = arr?.estimated || arr?.scheduled;
+  document.getElementById('prop-arr').innerHTML =
+    `${arr?.airport||'—'} (${arr?.iata||'YUL'}) &nbsp;·&nbsp; <strong>${fmtTime(eta,'America/Toronto')}</strong> <span style="color:var(--gray3);font-size:11px">heure MTL</span>`;
+
+  if (f.airline?.name) document.getElementById('prop-airline').textContent = f.airline.name;
+  document.getElementById('prop-aircraft').textContent =
+    f.aircraft ? `${f.aircraft.registration||''} (${f.aircraft.iata||''})`.trim() : '—';
+
+  // Live position
+  const liveRow = document.getElementById('live-row');
+  if (f.live && (f.live.altitude_ft || f.live.speed_kmh)) {
+    liveRow.style.display = 'flex';
+    const parts = [];
+    if (f.live.altitude_ft) parts.push(`Alt: ${f.live.altitude_ft.toLocaleString('fr-CA')} ft`);
+    if (f.live.speed_kmh)   parts.push(`${f.live.speed_kmh} km/h`);
+    if (f.live.heading != null) parts.push(`Cap: ${f.live.heading}°`);
+    document.getElementById('prop-live').textContent = parts.join(' · ');
+  } else {
+    liveRow.style.display = 'none';
+  }
+
+  // Source
+  const srcProp = document.getElementById('prop-source');
+  if (src === 'adsb.fi') {
+    srcProp.innerHTML = '<strong>ADSB.FI</strong> — temps réel';
+  } else if (src === 'live') {
+    srcProp.innerHTML = '<strong>AVIATIONSTACK</strong> — live';
+  } else {
+    srcProp.innerHTML = '<span style="color:var(--gray3)">Horaire estimé — vol pas encore parti</span>';
+  }
+
+  // Hide demo callout when live
+  if (src === 'adsb.fi' || src === 'live') {
+    document.getElementById('demo-callout')?.remove();
+  }
+
+  // Progress
+  const depTime = new Date(dep?.actual || dep?.scheduled);
+  const arrTime = new Date(arr?.estimated || arr?.scheduled);
+  const total   = arrTime - depTime;
+  const elapsed = Date.now() - depTime;
+  const pct = status === 'landed'    ? 100
+            : status === 'scheduled' ? 0
+            : Math.max(0, Math.min(98, (elapsed / total) * 100));
+
+  updatePixelBar(pct);
+  animateCoverPlane(pct);
+
+  document.getElementById('dep-time').textContent  = fmtTime(dep?.actual||dep?.scheduled,'Europe/Athens');
+  document.getElementById('dep-tz').textContent    = 'heure Athènes';
+  document.getElementById('arr-time').textContent  = fmtTime(eta,'America/Toronto');
+  document.getElementById('arr-tz').textContent    = 'heure MTL';
+
+  const remaining = arrTime - Date.now();
+  document.getElementById('pbar-eta').textContent =
+    status === 'landed'    ? 'ATTERRI À MONTRÉAL' :
+    status === 'scheduled' ? 'VOL PAS ENCORE PARTI' :
+    status === 'boarding'  ? 'EMBARQUEMENT EN COURS' :
+    durStr(remaining);
+
+  // Alert chips
+  const sent  = alerts.filter(a => a.sent).length;
+  const chips = document.getElementById('alert-chips');
+  chips.innerHTML =
+    `<div class="chip on">${alerts.length} alerte${alerts.length!==1?'s':''}</div>
+     <div class="chip">${sent} SMS envoyé${sent!==1?'s':''}</div>
+     <div class="chip">+1 418-262-7032</div>`;
+
+  // Alerts table
+  const tbody = document.getElementById('alerts-tbody');
+  if (!alerts.length) {
+    tbody.innerHTML = `<tr><td colspan="4" class="empty-cell">AUCUNE ALERTE — LES SMS SERONT ENVOYÉS LORS DES CHANGEMENTS DE STATUT</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = alerts.map(a => `
+    <tr>
+      <td><span class="stag ${a.status}" style="font-size:6px;padding:4px 8px">${a.statusLabel||STATUS_LABELS[a.status]||a.status}</span></td>
+      <td><div class="msg-pre">${escHtml(a.message||'')}</div>
+          <div style="font-size:10px;color:var(--gray3);margin-top:4px">→ ${a.phone||''}</div></td>
+      <td class="ts-cell">${fmtTime(a.timestamp)}</td>
+      <td>${a.error
+          ? `<span class="sent-err" title="${escHtml(a.error)}">ERREUR</span>`
+          : a.sent
+          ? `<span class="sent-ok">OK ✓</span>`
+          : `<span class="sent-demo">DÉMO</span>`}
+      </td>
+    </tr>
+  `).join('');
 }
 
 // ── Data loading ───────────────────────────────────────────────────────────
@@ -1079,107 +1036,84 @@ const GITHUB_RAW = 'https://raw.githubusercontent.com/janiebgrondin-run/Test12/c
 let useServer = false;
 
 async function loadData() {
-  // 1️⃣ ADSB.fi directly from browser — real-time, no cache, works when plane is airborne
+  // 1️⃣ ADSB.fi — real-time, browser-direct
   try {
-    const resp = await fetch('https://api.adsb.fi/v1/callsign/TSC1691', { cache: 'no-store', signal: AbortSignal.timeout(6000) });
+    const resp = await fetch('https://api.adsb.fi/v1/callsign/TSC1691', { cache:'no-store', signal: AbortSignal.timeout(6000) });
     const { ac } = await resp.json();
     if (ac?.length > 0) {
       const flight = buildFlightFromADSB(ac[0]);
       let alerts = [];
       try {
-        const ar = await fetch(`${GITHUB_RAW}/alerts.json?t=${Date.now()}`, { cache: 'no-store', signal: AbortSignal.timeout(3000) });
-        if (ar.ok) { const ad = await ar.json(); alerts = ad.alerts || []; }
+        const ar = await fetch(`${GITHUB_RAW}/alerts.json?t=${Date.now()}`, { cache:'no-store', signal: AbortSignal.timeout(3000) });
+        if (ar.ok) { const ad = await ar.json(); alerts = ad.alerts||[]; }
       } catch {}
       updateUI({ flight, alerts, lastCheck: new Date().toISOString(), source: 'adsb.fi' });
-      document.querySelector('.callout')?.remove();
       return;
     }
   } catch {}
 
-  // 2️⃣ GitHub raw JSON (committed every 2h by Actions — covers landed / scheduled states)
+  // 2️⃣ GitHub raw JSON — committed every 45min by Actions
   try {
     const t = Date.now();
     const [fr, ar] = await Promise.all([
-      fetch(`${GITHUB_RAW}/flight-data.json?t=${t}`, { cache: 'no-store', signal: AbortSignal.timeout(5000) }),
-      fetch(`${GITHUB_RAW}/alerts.json?t=${t}`,      { cache: 'no-store', signal: AbortSignal.timeout(5000) })
+      fetch(`${GITHUB_RAW}/flight-data.json?t=${t}`, { cache:'no-store', signal: AbortSignal.timeout(5000) }),
+      fetch(`${GITHUB_RAW}/alerts.json?t=${t}`,      { cache:'no-store', signal: AbortSignal.timeout(5000) })
     ]);
-    if (!fr.ok) throw new Error('no github data');
+    if (!fr.ok) throw new Error('no data');
     const fd = await fr.json();
     let alerts = [];
-    try { const ad = await ar.json(); alerts = ad.alerts || []; } catch {}
+    try { const ad = await ar.json(); alerts = ad.alerts||[]; } catch {}
     updateUI({ flight: fd.flight, alerts, lastCheck: fd.lastUpdated, source: fd.source });
-    document.querySelector('.callout')?.remove();
     return;
   } catch {}
 
   // 3️⃣ Demo fallback
-  useServer = false;
   updateUI({ flight: DEMO.flight, alerts: DEMO.alerts, lastCheck: new Date().toISOString() });
 }
 
 // ── Manual check ───────────────────────────────────────────────────────────
 async function checkNow() {
-  const btn = document.getElementById('check-btn');
-  const sbtn = document.getElementById('sidebar-check-btn');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Vérification…'; }
-  if (sbtn) sbtn.style.opacity = '.5';
-
+  const btn  = document.getElementById('check-btn');
+  const nbtn = document.getElementById('nav-check-btn');
+  if (btn)  { btn.disabled  = true; btn.textContent  = '⏳ VÉRIFICATION…'; }
+  if (nbtn) { nbtn.disabled = true; }
   try {
-    if (useServer) {
-      const r = await fetch('/api/check', { method:'POST' });
-      const d = await r.json();
-      updateUI({ flight: d.flight, alerts: d.alerts, lastCheck: d.lastCheck });
-    } else {
-      await loadData();
-    }
-    showToast('✅ Données actualisées depuis GitHub');
-  } catch (e) {
-    showToast('❌ Erreur de vérification');
+    await loadData();
+    showToast('DONNÉES ACTUALISÉES');
+  } catch {
+    showToast('ERREUR DE VÉRIFICATION');
   } finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = '🔄 Vérifier maintenant'; }
-    if (sbtn) sbtn.style.opacity = '1';
+    if (btn)  { btn.disabled  = false; btn.textContent  = '↻ VÉRIFIER MAINTENANT'; }
+    if (nbtn) { nbtn.disabled = false; }
   }
 }
 
-// ── Toast notification ─────────────────────────────────────────────────────
+// ── Test SMS ───────────────────────────────────────────────────────────────
+function sendTestSMS() {
+  window.open('https://github.com/janiebgrondin-run/Test12/actions/workflows/test-sms.yml', '_blank');
+  showToast('GITHUB ACTIONS OUVERT\nCLIQUEZ "RUN WORKFLOW"\nPOUR ENVOYER LE SMS');
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// ── Sidebar toggle ─────────────────────────────────────────────────────────
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const backdrop = document.getElementById('backdrop');
-  const isOpen = sidebar.classList.toggle('open');
-  backdrop.classList.toggle('show', isOpen);
-}
-
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('backdrop').classList.remove('show');
-}
-
+// ── Scroll helpers ─────────────────────────────────────────────────────────
 function scrollToTop() {
   document.getElementById('page-top').scrollIntoView({ behavior:'smooth' });
-  if (window.innerWidth <= 820) closeSidebar();
 }
 function scrollTo2(id) {
   document.querySelector(id)?.scrollIntoView({ behavior:'smooth', block:'start' });
-  if (window.innerWidth <= 820) closeSidebar();
-}
-
-// ── Send test SMS ──────────────────────────────────────────────────────────
-function sendTestSMS() {
-  window.open('https://github.com/janiebgrondin-run/Test12/actions/workflows/test-sms.yml', '_blank');
-  showToast('📱 GitHub Actions ouvert — cliquez "Run workflow" pour envoyer le SMS');
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
-makeStars();
+updatePixelBar(0);
+animateCoverPlane(0);
 loadData();
-setInterval(loadData, 60000); // Refresh every 60s
+setInterval(loadData, 60000);
 </script>
 </body>
 </html>
