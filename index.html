@@ -1097,10 +1097,9 @@ async function checkNow() {
       const d = await r.json();
       updateUI({ flight: d.flight, alerts: d.alerts, lastCheck: d.lastCheck });
     } else {
-      await new Promise(r => setTimeout(r, 800));
-      updateUI({ flight: DEMO.flight, alerts: DEMO.alerts, lastCheck: new Date().toISOString() });
+      await loadData();
     }
-    showToast('✅ Vérification terminée');
+    showToast('✅ Données actualisées depuis GitHub');
   } catch (e) {
     showToast('❌ Erreur de vérification');
   } finally {
@@ -1139,25 +1138,9 @@ function scrollTo2(id) {
 }
 
 // ── Send test SMS ──────────────────────────────────────────────────────────
-async function sendTestSMS() {
-  const btn = document.getElementById('test-btn');
-  btn.disabled = true; btn.textContent = '⏳ Envoi…';
-  try {
-    const r = await fetch('/api/test-sms', { method: 'POST' });
-    const d = await r.json();
-    if (d.demo) {
-      showToast('📵 Démo — Configurer Twilio pour vrai SMS');
-    } else if (d.sent) {
-      showToast('✅ SMS test envoyé à +1 418-262-7032!');
-    } else {
-      showToast('❌ Erreur: ' + (d.error || 'SMS non envoyé'));
-    }
-    await loadData();
-  } catch {
-    showToast('❌ Serveur non connecté — lancer npm start');
-  } finally {
-    btn.disabled = false; btn.innerHTML = '📱 Envoyer SMS test';
-  }
+function sendTestSMS() {
+  window.open('https://github.com/janiebgrondin-run/Test12/actions/workflows/test-sms.yml', '_blank');
+  showToast('📱 GitHub Actions ouvert — cliquez "Run workflow" pour envoyer le SMS');
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────

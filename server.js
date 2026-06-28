@@ -397,7 +397,8 @@ app.post('/api/check', async (req, res) => {
 });
 
 // ── Trial / test SMS ─────────────────────────────────────────────────────────
-app.post('/api/test-sms', async (req, res) => {
+
+async function sendTestSMSAlert() {
   const f = readDB().flight || mockFlight();
   const dep = f.departure?.actual || f.departure?.scheduled;
   const arr = f.arrival?.estimated || f.arrival?.scheduled;
@@ -445,10 +446,16 @@ app.post('/api/test-sms', async (req, res) => {
   });
   writeDB(db);
 
-  res.json({ success: true, sent, demo, error, message: msg });
+  console.log(sent ? `✅ SMS test envoyé à ${PHONE}` : `❌ Erreur SMS test: ${error}`);
+  return { success: true, sent, demo, error, message: msg };
+}
+
+app.post('/api/test-sms', async (req, res) => {
+  const result = await sendTestSMSAlert();
+  res.json(result);
 });
 
-module.exports = { checkFlight };
+module.exports = { checkFlight, sendTestSMSAlert };
 
 // Only start HTTP server when run directly (not via GitHub Actions require)
 if (require.main === module) {
