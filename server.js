@@ -17,7 +17,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true';
 const PERSON_NAME  = 'Gabrielle';
 const DIST_KM      = 7426;
 const DIST_MI      = 4615;
-const FLIGHT_DUR   = '~10h 30min';
+const FLIGHT_DUR   = '~10h 15min';
 
 // ── Database (JSON file) ─────────────────────────────────────────────────────
 
@@ -66,9 +66,9 @@ function buildFromADSB(ac) {
   const onGround = ac.alt_baro === 'ground' || !!ac.on_ground;
   const altFt = typeof ac.alt_baro === 'number' ? ac.alt_baro : null;
   const now = Date.now();
-  const depUTC = new Date(now); depUTC.setUTCHours(14, 0, 0, 0);
+  const depUTC = new Date(now); depUTC.setUTCHours(8, 25, 0, 0); // 11h25 Athens local
   if (depUTC.getTime() > now) depUTC.setUTCDate(depUTC.getUTCDate() - 1);
-  const arrEstimate = new Date(depUTC.getTime() + 10.5 * 3600000).toISOString();
+  const arrEstimate = new Date(depUTC.getTime() + 10.25 * 3600000).toISOString(); // 10h15 flight
   return {
     flight_status: onGround ? 'landed' : 'active',
     departure: {
@@ -98,10 +98,10 @@ function buildFromADSB(ac) {
 function mockFlight() {
   const now = Date.now();
   const depUTC = new Date(now);
-  depUTC.setUTCHours(14, 0, 0, 0);
+  depUTC.setUTCHours(8, 25, 0, 0); // 11h25 Athens local / 04h25 MTL → arrives 14h40 MTL
   if (depUTC.getTime() < now) depUTC.setUTCDate(depUTC.getUTCDate() + 1);
   const depTime = depUTC.getTime();
-  const arrTime = depTime + 10.5 * 3600000;
+  const arrTime = depTime + 10.25 * 3600000; // 10h15 flight
   return {
     flight_status: depTime - now < 3600000 ? 'boarding' : 'scheduled',
     departure: {
