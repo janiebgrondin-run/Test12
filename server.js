@@ -63,6 +63,19 @@ async function fetchFlight() {
   return mockFlight();
 }
 
+// Geographic region for ATH → YUL great-circle route (west, high-latitude)
+function getGeoDescription(lat, lon) {
+  if (lon >= 15)  return 'au-dessus de la Grèce / Europe de l\'Est';
+  if (lon >= 0)   return 'au-dessus de l\'Europe centrale / occidentale';
+  if (lon >= -10) return 'au-dessus du Royaume-Uni / Irlande';
+  if (lon >= -25) return 'au-dessus de l\'Atlantique Nord-Est';
+  if (lon >= -40) return 'au-dessus de l\'Atlantique Nord';
+  if (lon >= -55) return 'au-dessus de l\'Atlantique Nord-Ouest';
+  if (lon >= -60) return lat >= 50 ? 'au-dessus du Labrador / Terre-Neuve' : 'au-dessus de l\'Atlantique Ouest';
+  if (lon >= -68) return 'au-dessus du Québec';
+  return 'approche de Montréal';
+}
+
 // Great-circle distance in km (haversine)
 function haversine(lat1, lon1, lat2, lon2) {
   const R = 6371;
@@ -292,12 +305,20 @@ async function checkFlight() {
           const remaining = arrMs - Date.now();
           const remainStr = remaining > 0 ? formatDuration(remaining) : '~0min';
 
+          const geoDesc = f.live?.latitude && f.live?.longitude
+            ? getGeoDescription(f.live.latitude, f.live.longitude)
+            : null;
+
           const posLines = f.live?.altitude_ft
             ? [
+                geoDesc ? `🗺️ Position: ${geoDesc}` : null,
                 `📡 Altitude: ${f.live.altitude_ft.toLocaleString('fr-CA')} ft`,
                 `💨 Vitesse: ${f.live.speed_kmh || '—'} km/h · Cap: ${f.live.heading || '—'}°`
-              ]
-            : [`📡 Position: données ADS-B non disponibles`];
+              ].filter(Boolean)
+            : [
+                geoDesc ? `🗺️ Position: ${geoDesc}` : null,
+                `📡 Données ADS-B non disponibles`
+              ].filter(Boolean);
 
           const cpMsg = [
             `✈️ ${PERSON_NAME} en route [${cp.num}] — ${cp.label}`,
