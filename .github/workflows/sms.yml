@@ -1,6 +1,8 @@
 name: Send Test SMS
 
 on:
+  schedule:
+    - cron: '0 0 1 1 *'   # placeholder — triggers workflow_dispatch registration
   workflow_dispatch:
 
 jobs:
