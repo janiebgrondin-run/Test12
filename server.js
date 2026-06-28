@@ -153,7 +153,7 @@ async function sendAlert(message) {
 
 const STATUS_LABELS = {
   scheduled: 'Prévu', active: 'En Route', boarding: 'Embarquement',
-  landed: 'Atterri', cancelled: 'Annulé', diverted: 'Détourné', unknown: 'Inconnu'
+  landed: 'Atterri', post_landed: '💋 Bisou!', cancelled: 'Annulé', diverted: 'Détourné', unknown: 'Inconnu'
 };
 
 function fmtTime(iso, tz = 'America/Toronto') {
@@ -262,6 +262,38 @@ async function checkFlight() {
       });
     } else {
       console.log(`ℹ️  Statut: ${STATUS_LABELS[status] || status} — pas de nouvelle alerte`);
+    }
+
+    // 💋 Post-landing kiss alert — fires ~15 min after wheels down
+    if (status === 'landed') {
+      const arrISO = f.arrival?.actual || f.arrival?.estimated || f.arrival?.scheduled;
+      const minsAfterLanding = arrISO ? (Date.now() - new Date(arrISO)) / 60000 : 0;
+      if (minsAfterLanding >= 15 && !alreadySentToday(db, 'post_landed')) {
+        const kissMsg = [
+          `💋 Vous pouvez embrasser Gabrielle!`,
+          `━━━━━━━━━━━━━━━━━━━━`,
+          `✈️ Vol TS691 · Athens → Montréal`,
+          `🛬 Atterrie depuis ~${Math.round(minsAfterLanding)} min`,
+          `📍 Aéroport Montréal-Trudeau (YUL)`,
+          `💕 Bienvenue à Montréal, Gabrielle!`
+        ].join('\n');
+
+        let sent = false, error = null;
+        try { await sendAlert(kissMsg); sent = true; console.log('✅ Alerte bisou envoyée!'); }
+        catch (e) { error = e.message; console.error(`❌ SMS bisou erreur: ${e.message}`); }
+
+        db.alerts.unshift({
+          id: String(Date.now()),
+          timestamp: ts,
+          status: 'post_landed',
+          statusLabel: '💋 Bisou!',
+          flight: FLIGHT,
+          phone: PHONE,
+          message: kissMsg,
+          sent,
+          error
+        });
+      }
     }
 
     writeDB(db);
