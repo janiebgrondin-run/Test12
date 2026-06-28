@@ -47,8 +47,9 @@ async function fetchFlight() {
   }
 
   // 2️⃣  ADSB.fi — 100% gratuit, sans clé, données ADS-B en temps réel
+  //     Fonctionne uniquement quand l'avion est en vol (pas encore parti = aucun résultat)
   try {
-    const icao = 'TSC691';
+    const icao = 'TSC691'; // Air Transat ICAO + numéro de vol
     const { data } = await axios.get(`https://api.adsb.fi/v1/callsign/${icao}`, { timeout: 8000 });
     if (data?.ac?.length > 0) {
       console.log('✅ Source: ADSB.fi (live ADS-B)');
@@ -57,8 +58,8 @@ async function fetchFlight() {
     console.log('ℹ️  ADSB.fi: aucun vol TSC691 en cours (pas encore en vol)');
   } catch (e) { console.log('ADSB.fi erreur:', e.message); }
 
-  // 3️⃣  No live data yet — return scheduled with null times
-  console.log('ℹ️  Aucune donnée live disponible');
+  // 3️⃣  Scheduled fallback (horaire estimé jusqu'au décollage)
+  console.log('ℹ️  Utilisation de l\'horaire estimé');
   return mockFlight();
 }
 
@@ -113,7 +114,7 @@ function buildFromADSB(ac) {
 }
 
 function mockFlight() {
-  // No hardcoded times — show scheduled with blank times until live API provides data
+  // No hardcoded times — show "scheduled" with blank times until live API provides data
   return {
     flight_status: 'scheduled',
     departure: {
@@ -198,6 +199,7 @@ async function checkFlight() {
 
     if (!f) { writeDB(db); console.log('Aucune donnée.'); return f; }
 
+    // Write public flight-data.json so the static HTML can read it from GitHub
     fs.writeFileSync(
       path.join(__dirname, 'flight-data.json'),
       JSON.stringify({ flight: f, lastUpdated: ts, source: process.env.AVIATION_API_KEY ? 'live' : 'demo' }, null, 2)
@@ -205,6 +207,7 @@ async function checkFlight() {
 
     const status = f.flight_status;
     const eta = f.arrival?.estimated || f.arrival?.scheduled;
+    const etaStr = fmtTime(eta);
 
     const depLocalStr  = fmtTime(f.departure?.actual || f.departure?.scheduled, 'Europe/Athens');
     const etaMtlStr    = fmtTime(eta, 'America/Toronto');
@@ -319,7 +322,7 @@ async function checkFlight() {
             message: cpMsg, sent, error
           });
 
-          break;
+          break; // one update per check cycle — next run handles the following stage
         }
       }
     }
@@ -394,7 +397,8 @@ app.post('/api/check', async (req, res) => {
 });
 
 // ── Trial / test SMS ─────────────────────────────────────────────────────────
-app.post('/api/test-sms', async (req, res) => {
+
+async function sendTestSMSAlert() {
   const f = readDB().flight || mockFlight();
   const dep = f.departure?.actual || f.departure?.scheduled;
   const arr = f.arrival?.estimated || f.arrival?.scheduled;
@@ -442,10 +446,16 @@ app.post('/api/test-sms', async (req, res) => {
   });
   writeDB(db);
 
-  res.json({ success: true, sent, demo, error, message: msg });
+  console.log(sent ? `✅ SMS test envoyé à ${PHONE}` : `❌ Erreur SMS test: ${error}`);
+  return { success: true, sent, demo, error, message: msg };
+}
+
+app.post('/api/test-sms', async (req, res) => {
+  const result = await sendTestSMSAlert();
+  res.json(result);
 });
 
-module.exports = { checkFlight };
+module.exports = { checkFlight, sendTestSMSAlert };
 
 // Only start HTTP server when run directly (not via GitHub Actions require)
 if (require.main === module) {
