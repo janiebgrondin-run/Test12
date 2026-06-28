@@ -55,7 +55,7 @@ async function fetchFlight() {
       console.log('✅ Source: ADSB.fi (live ADS-B)');
       return buildFromADSB(data.ac[0]);
     }
-    console.log('ℹ️  ADSB.fi: aucun vol TSC691 en cours (pas encore en vol)');
+    console.log('ℹ️  ADSB.fi: aucun vol TSC1691 en cours (pas encore en vol)');
   } catch (e) { console.log('ADSB.fi erreur:', e.message); }
 
   // 3️⃣  Scheduled fallback (horaire estimé jusqu'au décollage)
@@ -99,7 +99,7 @@ function buildFromADSB(ac) {
       iata: 'YUL', timezone: 'America/Toronto',
       scheduled: arrISO, estimated: arrISO
     },
-    flight:   { iata: 'TS691', icao: 'TSC691', number: '691' },
+    flight:   { iata: 'TS1691', icao: 'TSC1691', number: '1691' },
     airline:  { name: 'Air Transat', iata: 'TS', icao: 'TSC' },
     aircraft: { registration: ac.r || 'C-GTSI', iata: ac.t || 'A332' },
     live: {
@@ -127,7 +127,7 @@ function mockFlight() {
       iata: 'YUL', timezone: 'America/Toronto',
       scheduled: null, estimated: null
     },
-    flight:   { iata: 'TS691', icao: 'TSC691', number: '691' },
+    flight:   { iata: 'TS1691', icao: 'TSC1691', number: '1691' },
     airline:  { name: 'Air Transat', iata: 'TS', icao: 'TSC' },
     aircraft: { registration: 'C-GTSI', iata: 'A332', icao: 'A332' }
   };
@@ -236,7 +236,7 @@ async function checkFlight() {
         `📏 Distance totale: ${DIST_KM.toLocaleString('fr-CA')} km`,
         `⏱ Durée de vol: ${durStr}`,
         `🛬 Arrivée prévue MTL: ${etaMtlStr}`,
-        `✈️ Air Transat TS691`
+        `✈️ Air Transat TS1691`
       ].join('\n'),
 
       landed: [
@@ -461,7 +461,7 @@ module.exports = { checkFlight, sendTestSMSAlert };
 if (require.main === module) {
   app.listen(PORT, () => {
     const mode = DEMO_MODE ? ' [MODE DÉMO]' : '';
-    console.log(`\n✈️  Vol Tracker TS691 démarré${mode}`);
+    console.log(`\n✈️  Vol Tracker TS1691 démarré${mode}`);
     console.log(`📍 Interface:  http://localhost:${PORT}`);
     console.log(`📱 Alertes →  ${PHONE}`);
     console.log(`🔄 Intervalle: ${INTERVAL_MS / 3600000}h`);
