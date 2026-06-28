@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>✈️ Gabrielle · Vol TS691</title>
+<title>✈️ Gabrielle · Vol TS1691</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -604,7 +604,7 @@ body {
     <nav class="sidebar-nav">
       <div class="nav-section-label">Pages</div>
       <a class="nav-item active" onclick="scrollToTop()">
-        <span class="nav-icon">✈️</span> Vol TS691
+        <span class="nav-icon">✈️</span> Vol TS1691
       </a>
       <a class="nav-item" onclick="scrollTo2('#progress-section')">
         <span class="nav-icon">🗺️</span> Progression
@@ -661,14 +661,14 @@ body {
         <text x="1100" y="148" text-anchor="middle" fill="rgba(255,255,255,0.6)"
               font-size="11" font-family="Inter,sans-serif" font-weight="600">YUL</text>
       </svg>
-      <div class="cover-badge" id="cover-status-badge">✈️ Gabrielle · TS691 · Chargement…</div>
+      <div class="cover-badge" id="cover-status-badge">✈️ Gabrielle · TS1691 · Chargement…</div>
     </div>
 
     <!-- Page content -->
     <div class="page" id="page-top">
 
       <span class="page-icon">✈️</span>
-      <h1 class="page-title">Gabrielle · Vol TS691</h1>
+      <h1 class="page-title">Gabrielle · Vol TS1691</h1>
       <p class="page-subtitle">Athens (ATH) → Montréal-Trudeau (YUL) &nbsp;·&nbsp; Air Transat &nbsp;·&nbsp; 7 426 km &nbsp;·&nbsp; 10h 15min</p>
 
       <!-- Properties -->
@@ -796,7 +796,7 @@ body {
         <div class="config-grid">
           <div class="config-card">
             <div class="config-label">Numéro de vol</div>
-            <div class="config-value">TS691</div>
+            <div class="config-value">TS1691</div>
           </div>
           <div class="config-card">
             <div class="config-label">Téléphone alertes</div>
@@ -843,7 +843,7 @@ const DEMO = {
       airport: 'Montréal-Pierre Elliott Trudeau International Airport', iata: 'YUL',
       timezone: 'America/Toronto', scheduled: null, estimated: null
     },
-    flight:   { iata: 'TS691', number: '691' },
+    flight:   { iata: 'TS1691', number: '691' },
     airline:  { name: 'Air Transat', iata: 'TS' },
     aircraft: { registration: 'C-GTSI', iata: 'A332' }
   },
@@ -939,7 +939,7 @@ function updateUI(data) {
 
   // Cover badge
   document.getElementById('cover-status-badge').textContent =
-    `✈️ Gabrielle · TS691 · ${statusLabel}`;
+    `✈️ Gabrielle · TS1691 · ${statusLabel}`;
 
   // Properties
   const dep = f.departure, arr = f.arrival;
@@ -1067,7 +1067,7 @@ function buildFlightFromADSB(ac) {
     flight_status: onGround ? 'landed' : 'active',
     departure: { airport: 'Athens International Airport "Eleftherios Venizelos"', iata: 'ATH', timezone: 'Europe/Athens', scheduled: depISO, actual: depISO },
     arrival:   { airport: 'Montréal-Pierre Elliott Trudeau International Airport',  iata: 'YUL', timezone: 'America/Toronto', scheduled: arrISO, estimated: arrISO },
-    flight:   { iata: 'TS691', icao: 'TSC691', number: '691' },
+    flight:   { iata: 'TS1691', icao: 'TSC1691', number: '691' },
     airline:  { name: 'Air Transat', iata: 'TS', icao: 'TSC' },
     aircraft: { registration: ac.r || 'C-GTSI', iata: ac.t || 'A332' },
     live: { latitude: ac.lat || null, longitude: ac.lon || null, altitude_ft: altFt, speed_kmh: speedKmh, heading: ac.track ? Math.round(ac.track) : null, source: 'adsb.fi' }
@@ -1081,7 +1081,7 @@ let useServer = false;
 async function loadData() {
   // 1️⃣ ADSB.fi directly from browser — real-time, no cache, works when plane is airborne
   try {
-    const resp = await fetch('https://api.adsb.fi/v1/callsign/TSC691', { cache: 'no-store', signal: AbortSignal.timeout(6000) });
+    const resp = await fetch('https://api.adsb.fi/v1/callsign/TSC1691', { cache: 'no-store', signal: AbortSignal.timeout(6000) });
     const { ac } = await resp.json();
     if (ac?.length > 0) {
       const flight = buildFlightFromADSB(ac[0]);

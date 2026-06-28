@@ -8,12 +8,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, 'alerts.json');
 
-const FLIGHT = process.env.FLIGHT_NUMBER || 'TS691';
+const FLIGHT = process.env.FLIGHT_NUMBER || 'TS1691';
 const PHONE = process.env.ALERT_PHONE || '+14182627032';
-const INTERVAL_MS = (parseFloat(process.env.CHECK_INTERVAL_HOURS) || 2) * 3600 * 1000;
+const INTERVAL_MS = (parseFloat(process.env.CHECK_INTERVAL_HOURS) || 0.75) * 3600 * 1000;
 const DEMO_MODE = process.env.DEMO_MODE === 'true';
 
-// TS691 ATH → YUL flight constants
+// TS1691 ATH → YUL flight constants
 const PERSON_NAME  = 'Gabrielle';
 const DIST_KM      = 7426;
 const DIST_MI      = 4615;
@@ -49,7 +49,7 @@ async function fetchFlight() {
   // 2️⃣  ADSB.fi — 100% gratuit, sans clé, données ADS-B en temps réel
   //     Fonctionne uniquement quand l'avion est en vol (pas encore parti = aucun résultat)
   try {
-    const icao = 'TSC691'; // Air Transat ICAO + numéro de vol
+    const icao = 'TSC1691'; // Air Transat ICAO + numéro de vol
     const { data } = await axios.get(`https://api.adsb.fi/v1/callsign/${icao}`, { timeout: 8000 });
     if (data?.ac?.length > 0) {
       console.log('✅ Source: ADSB.fi (live ADS-B)');
@@ -218,7 +218,7 @@ async function checkFlight() {
 
     const ALERT_MESSAGES = {
       boarding: [
-        `🛫 ${PERSON_NAME} embarque! Vol TS691`,
+        `🛫 ${PERSON_NAME} embarque! Vol TS1691`,
         `━━━━━━━━━━━━━━━━━━━━`,
         `📍 Athens (ATH) → Montréal (YUL)`,
         `🕐 Départ local Athènes: ${depLocalStr}`,
@@ -229,7 +229,7 @@ async function checkFlight() {
       ].join('\n'),
 
       active: [
-        `✈️ ${PERSON_NAME} est en route! Vol TS691`,
+        `✈️ ${PERSON_NAME} est en route! Vol TS1691`,
         `━━━━━━━━━━━━━━━━━━━━`,
         `📍 Athens (ATH) → Montréal (YUL)`,
         `🕐 Partie d'Athènes: ${depLocalStr}`,
@@ -335,7 +335,7 @@ async function checkFlight() {
         const kissMsg = [
           `💋 Vous pouvez embrasser Gabrielle!`,
           `━━━━━━━━━━━━━━━━━━━━`,
-          `✈️ Vol TS691 · Athens → Montréal`,
+          `✈️ Vol TS1691 · Athens → Montréal`,
           `🛬 Atterrie depuis ~${Math.round(minsAfterLanding)} min`,
           `📍 Aéroport Montréal-Trudeau (YUL)`,
           `💕 Bienvenue à Montréal, Gabrielle!`
@@ -410,7 +410,7 @@ async function sendTestSMSAlert() {
   const msg = [
     `🔔 Vous êtes maintenant abonné au retour de Gabrielle à Montréal!`,
     `━━━━━━━━━━━━━━━━━━━━`,
-    `✈️ Vol TS691 · Athens (ATH) → Montréal (YUL)`,
+    `✈️ Vol TS1691 · Athens (ATH) → Montréal (YUL)`,
     `🕐 Départ Athènes: ${depLocalStr} (heure locale)`,
     `🛬 Arrivée prévue MTL: ${etaMtlStr}`,
     `📏 Distance: ${DIST_KM.toLocaleString('fr-CA')} km (${DIST_MI.toLocaleString('fr-CA')} mi)`,
