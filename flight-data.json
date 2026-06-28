@@ -15,9 +15,9 @@
       "estimated": null
     },
     "flight": {
-      "iata": "TS691",
-      "icao": "TSC691",
-      "number": "691"
+      "iata": "TS1691",
+      "icao": "TSC1691",
+      "number": "1691"
     },
     "airline": {
       "name": "Air Transat",
@@ -30,6 +30,6 @@
       "icao": "A332"
     }
   },
-  "lastUpdated": "2026-06-28T12:57:14.247Z",
+  "lastUpdated": "2026-06-28T13:10:05.907Z",
   "source": "demo"
 }
