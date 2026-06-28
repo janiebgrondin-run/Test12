@@ -1,19 +1,18 @@
 {
   "flight": {
-    "flight_status": "active",
+    "flight_status": "scheduled",
     "departure": {
       "airport": "Athens International Airport \"Eleftherios Venizelos\"",
       "iata": "ATH",
       "timezone": "Europe/Athens",
-      "scheduled": "2026-06-28T08:25:00.000Z",
-      "actual": "2026-06-28T08:25:00.000Z"
+      "scheduled": null
     },
     "arrival": {
       "airport": "Montréal-Pierre Elliott Trudeau International Airport",
       "iata": "YUL",
       "timezone": "America/Toronto",
-      "scheduled": "2026-06-28T18:40:00.000Z",
-      "estimated": "2026-06-28T18:40:00.000Z"
+      "scheduled": null,
+      "estimated": null
     },
     "flight": {
       "iata": "TS1691",
@@ -31,6 +30,6 @@
       "icao": "A332"
     }
   },
-  "lastUpdated": "2026-06-28T14:00:00.000Z",
-  "source": "schedule"
+  "lastUpdated": "2026-06-28T16:46:24.492Z",
+  "source": "demo"
 }
