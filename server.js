@@ -17,7 +17,7 @@ const DEMO_MODE = process.env.DEMO_MODE === 'true';
 const PERSON_NAME  = 'Gabrielle';
 const DIST_KM      = 7426;
 const DIST_MI      = 4615;
-const FLIGHT_DUR   = '~10h 30min';
+const FLIGHT_DUR   = '~10h 15min';
 
 // ── Database (JSON file) ─────────────────────────────────────────────────────
 
@@ -68,9 +68,9 @@ function buildFromADSB(ac) {
   const altFt = typeof ac.alt_baro === 'number' ? ac.alt_baro : null;
   const now = Date.now();
   // Estimate arrival: assume ~10.5h from takeoff; use scheduled as fallback
-  const depUTC = new Date(now); depUTC.setUTCHours(14, 0, 0, 0);
+  const depUTC = new Date(now); depUTC.setUTCHours(8, 25, 0, 0);
   if (depUTC.getTime() > now) depUTC.setUTCDate(depUTC.getUTCDate() - 1);
-  const arrEstimate = new Date(depUTC.getTime() + 10.5 * 3600000).toISOString();
+  const arrEstimate = new Date(depUTC.getTime() + 10.25 * 3600000).toISOString();
   return {
     flight_status: onGround ? 'landed' : 'active',
     departure: {
@@ -102,10 +102,10 @@ function mockFlight() {
   // TS691: departs Athens ~17:00 local (UTC+3) = 14:00 UTC, arrives MTL ~22:00 EDT
   // Show as scheduled until real API key is added
   const depUTC = new Date(now);
-  depUTC.setUTCHours(14, 0, 0, 0); // 17h00 Athens / 10h00 MTL
+  depUTC.setUTCHours(8, 25, 0, 0); // 11h25 Athens / 04h25 MTL → arrives 14h40 MTL
   if (depUTC.getTime() < now) depUTC.setUTCDate(depUTC.getUTCDate() + 1);
   const depTime = depUTC.getTime();
-  const arrTime = depTime + 10.5 * 3600000; // ~10h30 flight
+  const arrTime = depTime + 10.25 * 3600000; // 10h15 flight
   return {
     flight_status: depTime - now < 3600000 ? 'boarding' : 'scheduled',
     departure: {

@@ -669,7 +669,7 @@ body {
 
       <span class="page-icon">✈️</span>
       <h1 class="page-title">Gabrielle · Vol TS691</h1>
-      <p class="page-subtitle">Athens (ATH) → Montréal-Trudeau (YUL) &nbsp;·&nbsp; Air Transat &nbsp;·&nbsp; 7 426 km</p>
+      <p class="page-subtitle">Athens (ATH) → Montréal-Trudeau (YUL) &nbsp;·&nbsp; Air Transat &nbsp;·&nbsp; 7 426 km &nbsp;·&nbsp; 10h 15min</p>
 
       <!-- Properties -->
       <div class="props">
@@ -835,12 +835,12 @@ body {
 const NOW = Date.now();
 // TS691 departs Athens ~17h00 local (14h00 UTC), arrives MTL ~00h30 next day
 function demoDepTime() {
-  const d = new Date(); d.setUTCHours(14, 0, 0, 0);
+  const d = new Date(); d.setUTCHours(8, 25, 0, 0); // 11h25 Athens local
   if (d.getTime() < NOW) d.setUTCDate(d.getUTCDate() + 1);
   return d.toISOString();
 }
 const DEP_ISO = demoDepTime();
-const ARR_ISO = new Date(new Date(DEP_ISO).getTime() + 10.5*3600000).toISOString();
+const ARR_ISO = new Date(new Date(DEP_ISO).getTime() + 10.25*3600000).toISOString(); // 10h15 flight
 const DEMO = {
   flight: {
     flight_status: (new Date(DEP_ISO).getTime() - NOW) < 3600000 ? 'boarding' : 'scheduled',
