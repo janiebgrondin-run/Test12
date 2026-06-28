@@ -1,8 +1,8 @@
-name: ✈️ Gabrielle · Vol TS691 Tracker
+name: ✈️ Gabrielle · Vol TS1691 Tracker
 
 on:
   schedule:
-    - cron: '0 */2 * * *'   # every 2 hours, 24/7
+    - cron: '0,45 * * * *'  # every ~45 minutes
   workflow_dispatch:         # run manually anytime from phone
 
 permissions:
@@ -22,9 +22,9 @@ jobs:
 
       - run: npm install
 
-      - name: Check TS691 & send SMS
+      - name: Check TS1691 & send SMS
         env:
-          FLIGHT_NUMBER:       TS691
+          FLIGHT_NUMBER:       TS1691
           ALERT_PHONE:         +14182627032
           AVIATION_API_KEY:    ${{ secrets.AVIATION_API_KEY }}
           TWILIO_ACCOUNT_SID:  ${{ secrets.TWILIO_ACCOUNT_SID }}

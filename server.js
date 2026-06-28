@@ -8,12 +8,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, 'alerts.json');
 
-const FLIGHT = process.env.FLIGHT_NUMBER || 'TS691';
+const FLIGHT = process.env.FLIGHT_NUMBER || 'TS1691';
 const PHONE = process.env.ALERT_PHONE || '+14182627032';
-const INTERVAL_MS = (parseFloat(process.env.CHECK_INTERVAL_HOURS) || 2) * 3600 * 1000;
+const INTERVAL_MS = (parseFloat(process.env.CHECK_INTERVAL_HOURS) || 0.75) * 3600 * 1000;
 const DEMO_MODE = process.env.DEMO_MODE === 'true';
 
-// TS691 ATH → YUL flight constants
+// TS1691 ATH → YUL flight constants
 const PERSON_NAME  = 'Gabrielle';
 const DIST_KM      = 7426;
 const DIST_MI      = 4615;
@@ -49,13 +49,13 @@ async function fetchFlight() {
   // 2️⃣  ADSB.fi — 100% gratuit, sans clé, données ADS-B en temps réel
   //     Fonctionne uniquement quand l'avion est en vol (pas encore parti = aucun résultat)
   try {
-    const icao = 'TSC691'; // Air Transat ICAO + numéro de vol
+    const icao = 'TSC1691'; // Air Transat ICAO + numéro de vol
     const { data } = await axios.get(`https://api.adsb.fi/v1/callsign/${icao}`, { timeout: 8000 });
     if (data?.ac?.length > 0) {
       console.log('✅ Source: ADSB.fi (live ADS-B)');
       return buildFromADSB(data.ac[0]);
     }
-    console.log('ℹ️  ADSB.fi: aucun vol TSC691 en cours (pas encore en vol)');
+    console.log('ℹ️  ADSB.fi: aucun vol TSC1691 en cours (pas encore en vol)');
   } catch (e) { console.log('ADSB.fi erreur:', e.message); }
 
   // 3️⃣  Scheduled fallback (horaire estimé jusqu'au décollage)
@@ -99,7 +99,7 @@ function buildFromADSB(ac) {
       iata: 'YUL', timezone: 'America/Toronto',
       scheduled: arrISO, estimated: arrISO
     },
-    flight:   { iata: 'TS691', icao: 'TSC691', number: '691' },
+    flight:   { iata: 'TS1691', icao: 'TSC1691', number: '1691' },
     airline:  { name: 'Air Transat', iata: 'TS', icao: 'TSC' },
     aircraft: { registration: ac.r || 'C-GTSI', iata: ac.t || 'A332' },
     live: {
@@ -127,7 +127,7 @@ function mockFlight() {
       iata: 'YUL', timezone: 'America/Toronto',
       scheduled: null, estimated: null
     },
-    flight:   { iata: 'TS691', icao: 'TSC691', number: '691' },
+    flight:   { iata: 'TS1691', icao: 'TSC1691', number: '1691' },
     airline:  { name: 'Air Transat', iata: 'TS', icao: 'TSC' },
     aircraft: { registration: 'C-GTSI', iata: 'A332', icao: 'A332' }
   };
@@ -218,7 +218,7 @@ async function checkFlight() {
 
     const ALERT_MESSAGES = {
       boarding: [
-        `🛫 ${PERSON_NAME} embarque! Vol TS691`,
+        `🛫 ${PERSON_NAME} embarque! Vol TS1691`,
         `━━━━━━━━━━━━━━━━━━━━`,
         `📍 Athens (ATH) → Montréal (YUL)`,
         `🕐 Départ local Athènes: ${depLocalStr}`,
@@ -229,14 +229,14 @@ async function checkFlight() {
       ].join('\n'),
 
       active: [
-        `✈️ ${PERSON_NAME} est en route! Vol TS691`,
+        `✈️ ${PERSON_NAME} est en route! Vol TS1691`,
         `━━━━━━━━━━━━━━━━━━━━`,
         `📍 Athens (ATH) → Montréal (YUL)`,
         `🕐 Partie d'Athènes: ${depLocalStr}`,
         `📏 Distance totale: ${DIST_KM.toLocaleString('fr-CA')} km`,
         `⏱ Durée de vol: ${durStr}`,
         `🛬 Arrivée prévue MTL: ${etaMtlStr}`,
-        `✈️ Air Transat TS691`
+        `✈️ Air Transat TS1691`
       ].join('\n'),
 
       landed: [
@@ -335,7 +335,7 @@ async function checkFlight() {
         const kissMsg = [
           `💋 Vous pouvez embrasser Gabrielle!`,
           `━━━━━━━━━━━━━━━━━━━━`,
-          `✈️ Vol TS691 · Athens → Montréal`,
+          `✈️ Vol TS1691 · Athens → Montréal`,
           `🛬 Atterrie depuis ~${Math.round(minsAfterLanding)} min`,
           `📍 Aéroport Montréal-Trudeau (YUL)`,
           `💕 Bienvenue à Montréal, Gabrielle!`
@@ -410,7 +410,7 @@ async function sendTestSMSAlert() {
   const msg = [
     `🔔 Vous êtes maintenant abonné au retour de Gabrielle à Montréal!`,
     `━━━━━━━━━━━━━━━━━━━━`,
-    `✈️ Vol TS691 · Athens (ATH) → Montréal (YUL)`,
+    `✈️ Vol TS1691 · Athens (ATH) → Montréal (YUL)`,
     `🕐 Départ Athènes: ${depLocalStr} (heure locale)`,
     `🛬 Arrivée prévue MTL: ${etaMtlStr}`,
     `📏 Distance: ${DIST_KM.toLocaleString('fr-CA')} km (${DIST_MI.toLocaleString('fr-CA')} mi)`,
@@ -461,7 +461,7 @@ module.exports = { checkFlight, sendTestSMSAlert };
 if (require.main === module) {
   app.listen(PORT, () => {
     const mode = DEMO_MODE ? ' [MODE DÉMO]' : '';
-    console.log(`\n✈️  Vol Tracker TS691 démarré${mode}`);
+    console.log(`\n✈️  Vol Tracker TS1691 démarré${mode}`);
     console.log(`📍 Interface:  http://localhost:${PORT}`);
     console.log(`📱 Alertes →  ${PHONE}`);
     console.log(`🔄 Intervalle: ${INTERVAL_MS / 3600000}h`);
