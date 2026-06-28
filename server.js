@@ -33,12 +33,68 @@ function writeDB(data) {
 // ── Flight data ──────────────────────────────────────────────────────────────
 
 async function fetchFlight() {
-  if (DEMO_MODE || !process.env.AVIATION_API_KEY) return mockFlight();
-  const { data } = await axios.get('http://api.aviationstack.com/v1/flights', {
-    params: { access_key: process.env.AVIATION_API_KEY, flight_iata: FLIGHT },
-    timeout: 10000
-  });
-  return data?.data?.[0] || null;
+  if (DEMO_MODE) return mockFlight();
+
+  // 1️⃣  AviationStack — full schedule + status (free API key required)
+  if (process.env.AVIATION_API_KEY) {
+    try {
+      const { data } = await axios.get('http://api.aviationstack.com/v1/flights', {
+        params: { access_key: process.env.AVIATION_API_KEY, flight_iata: FLIGHT },
+        timeout: 10000
+      });
+      if (data?.data?.[0]) { console.log('✅ Source: AviationStack (live)'); return data.data[0]; }
+    } catch (e) { console.log('AviationStack erreur:', e.message); }
+  }
+
+  // 2️⃣  ADSB.fi — 100% gratuit, sans clé, données ADS-B en temps réel
+  //     Fonctionne uniquement quand l'avion est en vol (pas encore parti = aucun résultat)
+  try {
+    const icao = 'TSC691'; // Air Transat ICAO + numéro de vol
+    const { data } = await axios.get(`https://api.adsb.fi/v1/callsign/${icao}`, { timeout: 8000 });
+    if (data?.ac?.length > 0) {
+      console.log('✅ Source: ADSB.fi (live ADS-B)');
+      return buildFromADSB(data.ac[0]);
+    }
+    console.log('ℹ️  ADSB.fi: aucun vol TSC691 en cours (pas encore en vol)');
+  } catch (e) { console.log('ADSB.fi erreur:', e.message); }
+
+  // 3️⃣  Scheduled fallback (horaire estimé jusqu'au décollage)
+  console.log('ℹ️  Utilisation de l\'horaire estimé');
+  return mockFlight();
+}
+
+function buildFromADSB(ac) {
+  const onGround = ac.alt_baro === 'ground' || !!ac.on_ground;
+  const altFt = typeof ac.alt_baro === 'number' ? ac.alt_baro : null;
+  const now = Date.now();
+  // Estimate arrival: assume ~10.5h from takeoff; use scheduled as fallback
+  const depUTC = new Date(now); depUTC.setUTCHours(14, 0, 0, 0);
+  if (depUTC.getTime() > now) depUTC.setUTCDate(depUTC.getUTCDate() - 1);
+  const arrEstimate = new Date(depUTC.getTime() + 10.5 * 3600000).toISOString();
+  return {
+    flight_status: onGround ? 'landed' : 'active',
+    departure: {
+      airport: 'Athens International Airport "Eleftherios Venizelos"',
+      iata: 'ATH', timezone: 'Europe/Athens',
+      scheduled: new Date(depUTC).toISOString(), actual: new Date(depUTC).toISOString()
+    },
+    arrival: {
+      airport: 'Montréal-Pierre Elliott Trudeau International Airport',
+      iata: 'YUL', timezone: 'America/Toronto',
+      scheduled: arrEstimate, estimated: arrEstimate
+    },
+    flight: { iata: 'TS691', icao: 'TSC691', number: '691' },
+    airline: { name: 'Air Transat', iata: 'TS', icao: 'TSC' },
+    aircraft: { registration: ac.r || 'C-GTSI', iata: ac.t || 'A332' },
+    live: {
+      latitude: ac.lat || null,
+      longitude: ac.lon || null,
+      altitude_ft: altFt,
+      speed_kmh: ac.gs ? Math.round(ac.gs * 1.852) : null,
+      heading: ac.track ? Math.round(ac.track) : null,
+      source: 'adsb.fi'
+    }
+  };
 }
 
 function mockFlight() {

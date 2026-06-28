@@ -694,6 +694,14 @@ body {
           <div class="prop-key"><span class="prop-key-icon">🕐</span> Dernière vérif.</div>
           <div class="prop-val" id="prop-last">—</div>
         </div>
+        <div class="prop-row" id="live-row" style="display:none">
+          <div class="prop-key"><span class="prop-key-icon">🛰️</span> Position live</div>
+          <div class="prop-val" id="prop-live">—</div>
+        </div>
+        <div class="prop-row" id="source-row">
+          <div class="prop-key"><span class="prop-key-icon">📡</span> Source</div>
+          <div class="prop-val" id="prop-source"><span style="color:var(--muted)">Chargement…</span></div>
+        </div>
       </div>
 
       <div class="divider"></div>
@@ -949,6 +957,30 @@ function updateUI(data) {
   document.getElementById('prop-aircraft').textContent =
     f.aircraft ? `${f.aircraft.registration || ''} (${f.aircraft.iata || ''})`.trim() : '—';
 
+  // Live position (ADSB.fi)
+  const liveRow = document.getElementById('live-row');
+  if (f.live && (f.live.altitude_ft || f.live.speed_kmh)) {
+    liveRow.style.display = 'flex';
+    const parts = [];
+    if (f.live.altitude_ft) parts.push(`Alt: ${f.live.altitude_ft.toLocaleString('fr-CA')} ft`);
+    if (f.live.speed_kmh)   parts.push(`${f.live.speed_kmh} km/h`);
+    if (f.live.heading != null) parts.push(`Cap: ${f.live.heading}°`);
+    document.getElementById('prop-live').textContent = parts.join(' · ');
+  } else {
+    liveRow.style.display = 'none';
+  }
+
+  // Source indicator
+  const src = f.live?.source || data?.source;
+  const sourceProp = document.getElementById('prop-source');
+  if (src === 'adsb.fi') {
+    sourceProp.innerHTML = '<span style="color:var(--teal);font-weight:600">🟢 ADSB.fi (temps réel)</span>';
+  } else if (src === 'live') {
+    sourceProp.innerHTML = '<span style="color:var(--teal)">🟢 AviationStack (live)</span>';
+  } else {
+    sourceProp.innerHTML = '<span style="color:var(--orange)">⚠️ Horaire estimé — vol pas encore parti</span>';
+  }
+
   // Progress bar
   const depTime = new Date(dep?.actual || dep?.scheduled);
   const arrTime = new Date(arr?.estimated || arr?.scheduled);
@@ -1026,7 +1058,7 @@ async function loadData() {
     const fd = await fr.json();
     let alerts = [];
     try { const ad = await ar.json(); alerts = ad.alerts || []; } catch {}
-    updateUI({ flight: fd.flight, alerts, lastCheck: fd.lastUpdated });
+    updateUI({ flight: fd.flight, alerts, lastCheck: fd.lastUpdated, source: fd.source });
     document.querySelector('.callout')?.remove();
     return;
   } catch {}
