@@ -1007,9 +1007,27 @@ function escHtml(s) {
 }
 
 // ── Data loading ───────────────────────────────────────────────────────────
+const GITHUB_RAW = 'https://raw.githubusercontent.com/janiebgrondin-run/Test12/claude/missiveapp-french-translation-BW7EM';
 let useServer = false;
 
 async function loadData() {
+  // 1️⃣ Try GitHub raw files (updated every 2h by GitHub Actions)
+  try {
+    const t = Date.now();
+    const [fr, ar] = await Promise.all([
+      fetch(`${GITHUB_RAW}/flight-data.json?t=${t}`, { cache: 'no-store', signal: AbortSignal.timeout(5000) }),
+      fetch(`${GITHUB_RAW}/alerts.json?t=${t}`,      { cache: 'no-store', signal: AbortSignal.timeout(5000) })
+    ]);
+    if (!fr.ok) throw new Error('no github data');
+    const fd = await fr.json();
+    let alerts = [];
+    try { const ad = await ar.json(); alerts = ad.alerts || []; } catch {}
+    updateUI({ flight: fd.flight, alerts, lastCheck: fd.lastUpdated });
+    document.querySelector('.callout')?.remove();
+    return;
+  } catch {}
+
+  // 2️⃣ Try local server (npm start)
   try {
     const [sr, ar] = await Promise.all([
       fetch('/api/status', { signal: AbortSignal.timeout(3000) }),
@@ -1020,15 +1038,14 @@ async function loadData() {
     const { alerts } = await ar.json();
     useServer = true;
     updateUI({ flight: s.flight, alerts, lastCheck: s.lastCheck });
-
-    // Hide demo callout when server is live
     const callout = document.querySelector('.callout');
     if (callout && !s.config?.demo) callout.style.display = 'none';
-  } catch {
-    // No server — use demo data
-    useServer = false;
-    updateUI({ flight: DEMO.flight, alerts: DEMO.alerts, lastCheck: new Date().toISOString() });
-  }
+    return;
+  } catch {}
+
+  // 3️⃣ Demo fallback
+  useServer = false;
+  updateUI({ flight: DEMO.flight, alerts: DEMO.alerts, lastCheck: new Date().toISOString() });
 }
 
 // ── Manual check ───────────────────────────────────────────────────────────

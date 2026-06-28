@@ -131,6 +131,12 @@ async function checkFlight() {
 
     if (!f) { writeDB(db); console.log('Aucune donnée.'); return f; }
 
+    // Write public flight-data.json so the static HTML can read it from GitHub
+    fs.writeFileSync(
+      path.join(__dirname, 'flight-data.json'),
+      JSON.stringify({ flight: f, lastUpdated: ts, source: process.env.AVIATION_API_KEY ? 'live' : 'demo' }, null, 2)
+    );
+
     const status = f.flight_status;
     const eta = f.arrival?.estimated || f.arrival?.scheduled;
     const etaStr = fmtTime(eta);

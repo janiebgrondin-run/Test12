@@ -5,11 +5,16 @@ on:
     - cron: '0 */2 * * *'   # every 2 hours, 24/7
   workflow_dispatch:         # run manually anytime from phone
 
+permissions:
+  contents: write            # needed to commit flight-data.json back
+
 jobs:
   check-flight:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
@@ -28,3 +33,11 @@ jobs:
           TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
           WHATSAPP_ENABLED:    ${{ secrets.WHATSAPP_ENABLED }}
         run: node -e "require('./server.js').checkFlight().then(() => process.exit(0))"
+
+      - name: Save flight data to repo
+        run: |
+          git config user.name  "Flight Tracker Bot"
+          git config user.email "flight-tracker@github-actions"
+          git add flight-data.json alerts.json 2>/dev/null || true
+          git diff --staged --quiet || git commit -m "✈️ Update flight data [$(date -u '+%Y-%m-%d %H:%M UTC')]"
+          git push
