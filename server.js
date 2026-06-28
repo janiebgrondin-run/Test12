@@ -284,15 +284,18 @@ app.post('/api/test-sms', async (req, res) => {
   res.json({ success: true, sent, demo, error, message: msg });
 });
 
-app.listen(PORT, () => {
-  const mode = DEMO_MODE ? ' [MODE DÉMO]' : '';
-  console.log(`\n✈️  Vol Tracker TS691 démarré${mode}`);
-  console.log(`📍 Interface:  http://localhost:${PORT}`);
-  console.log(`📱 Alertes →  ${PHONE}`);
-  console.log(`🔄 Intervalle: ${INTERVAL_MS / 3600000}h`);
-  console.log(`💾 Base de données: ${DB_FILE}\n`);
-  checkFlight();
-  setInterval(checkFlight, INTERVAL_MS);
-});
-
 module.exports = { checkFlight };
+
+// Only start HTTP server when run directly (not via GitHub Actions require)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    const mode = DEMO_MODE ? ' [MODE DÉMO]' : '';
+    console.log(`\n✈️  Vol Tracker TS691 démarré${mode}`);
+    console.log(`📍 Interface:  http://localhost:${PORT}`);
+    console.log(`📱 Alertes →  ${PHONE}`);
+    console.log(`🔄 Intervalle: ${INTERVAL_MS / 3600000}h`);
+    console.log(`💾 Base de données: ${DB_FILE}\n`);
+    checkFlight();
+    setInterval(checkFlight, INTERVAL_MS);
+  });
+}
