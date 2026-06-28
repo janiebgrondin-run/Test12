@@ -654,7 +654,7 @@ body {
           <div class="prop-val" id="prop-dep">Athens — Aéroport International</div>
         </div>
         <div class="prop-row">
-          <div class="prop-key"><span class="prop-key-icon">🛬</span> Arrivée estimée</div>
+          <div class="prop-key"><span class="prop-key-icon">🛬</span> Arrivée prévue (MTL)</div>
           <div class="prop-val" id="prop-arr">Montréal-Trudeau (YUL)</div>
         </div>
         <div class="prop-row">
@@ -914,7 +914,7 @@ function updateUI(data) {
   const eta = arr?.estimated || arr?.scheduled;
   document.getElementById('prop-arr').innerHTML =
     `${arr?.airport || '—'} &nbsp;<span style="color:var(--muted)">(${arr?.iata || 'YUL'})</span>
-     &nbsp;·&nbsp; <strong>${fmtTime(eta,'America/Toronto')}</strong>`;
+     &nbsp;·&nbsp; <strong>${fmtTime(eta,'America/Toronto')}</strong> <span style="color:var(--muted);font-size:12px">heure de Montréal</span>`;
 
   if (f.airline?.name) document.getElementById('prop-airline').textContent = f.airline.name;
   document.getElementById('prop-aircraft').textContent =
@@ -933,7 +933,7 @@ function updateUI(data) {
   document.getElementById('prog-plane').style.left  = pct + '%';
   document.getElementById('prog-pct').textContent   = Math.round(pct) + '%';
   document.getElementById('dep-time').textContent   = fmtTime(dep?.actual || dep?.scheduled, 'Europe/Athens');
-  document.getElementById('arr-time').textContent   = fmtTime(eta, 'America/Toronto');
+  document.getElementById('arr-time').innerHTML = `${fmtTime(eta, 'America/Toronto')}<br><span style="font-size:11px;color:var(--faint)">heure MTL</span>`;
 
   const remaining = arrTime - Date.now();
   document.getElementById('prog-label').textContent =
