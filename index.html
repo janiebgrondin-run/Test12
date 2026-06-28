@@ -251,6 +251,11 @@ body {
 .badge.test .badge-dot       { background: #1a73e8; }
 .badge.post_landed { background: #fce7f3; color: #be185d; }
 .badge.post_landed .badge-dot { background: #be185d; }
+.badge.active_25, .badge.active_50, .badge.active_75, .badge.active_95
+  { background: #e3f3f0; color: #0f7b6c; }
+.badge.active_25 .badge-dot, .badge.active_50 .badge-dot,
+.badge.active_75 .badge-dot, .badge.active_95 .badge-dot
+  { background: #0f7b6c; animation: pulse 2s infinite; }
 
 /* ── Divider ── */
 .divider {
@@ -883,6 +888,8 @@ function duration(ms) {
 // ── Status label map ───────────────────────────────────────────────────────
 const STATUS = {
   scheduled:'Prévu', active:'En Route', boarding:'Embarquement',
+  active_25:'✈️ En Route 1/4', active_50:'✈️ Mi-chemin 2/4',
+  active_75:'✈️ En Route 3/4', active_95:'✈️ Approche 4/4',
   landed:'Atterri', post_landed:'💋 Bisou!', cancelled:'Annulé', diverted:'Détourné', unknown:'Inconnu'
 };
 

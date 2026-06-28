@@ -153,6 +153,8 @@ async function sendAlert(message) {
 
 const STATUS_LABELS = {
   scheduled: 'Prévu', active: 'En Route', boarding: 'Embarquement',
+  active_25: '✈️ En Route 1/4', active_50: '✈️ Mi-chemin 2/4',
+  active_75: '✈️ En Route 3/4', active_95: '✈️ Approche 4/4',
   landed: 'Atterri', post_landed: '💋 Bisou!', cancelled: 'Annulé', diverted: 'Détourné', unknown: 'Inconnu'
 };
 
@@ -262,6 +264,61 @@ async function checkFlight() {
       });
     } else {
       console.log(`ℹ️  Statut: ${STATUS_LABELS[status] || status} — pas de nouvelle alerte`);
+    }
+
+    // 📍 En route position updates — 4 checkpoints (25 / 50 / 75 / 95 %)
+    if (status === 'active') {
+      const depMs  = new Date(depActual).getTime();
+      const arrMs  = new Date(arrActual).getTime();
+      const total  = arrMs - depMs;
+      const elapsed = Date.now() - depMs;
+      const pct    = total > 0 ? (elapsed / total) * 100 : 0;
+
+      const checkpoints = [
+        { key: 'active_25', threshold: 25, num: '1/4', label: 'Premier point de position' },
+        { key: 'active_50', threshold: 50, num: '2/4', label: 'Mi-chemin — au-dessus de l\'Atlantique 🌊' },
+        { key: 'active_75', threshold: 75, num: '3/4', label: 'Approche Canada' },
+        { key: 'active_95', threshold: 95, num: '4/4', label: 'Arrivée imminente!' }
+      ];
+
+      for (const cp of checkpoints) {
+        if (pct >= cp.threshold && !alreadySentToday(db, cp.key)) {
+          const remaining = arrMs - Date.now();
+          const remainStr = remaining > 0 ? formatDuration(remaining) : '~0min';
+
+          const posLines = f.live?.altitude_ft
+            ? [
+                `📡 Altitude: ${f.live.altitude_ft.toLocaleString('fr-CA')} ft`,
+                `💨 Vitesse: ${f.live.speed_kmh || '—'} km/h · Cap: ${f.live.heading || '—'}°`
+              ]
+            : [`📡 Position: données ADS-B non disponibles`];
+
+          const cpMsg = [
+            `✈️ ${PERSON_NAME} en route [${cp.num}] — ${cp.label}`,
+            `━━━━━━━━━━━━━━━━━━━━`,
+            `📍 Athens (ATH) → Montréal (YUL)`,
+            `📊 Progression: ${Math.round(pct)}% du trajet`,
+            ...posLines,
+            `⏱ Temps restant: ~${remainStr}`,
+            `🛬 Arrivée prévue MTL: ${etaMtlStr}`
+          ].join('\n');
+
+          let sent = false, error = null;
+          try { await sendAlert(cpMsg); sent = true; console.log(`✅ Position [${cp.num}] envoyée`); }
+          catch (e) { error = e.message; console.error(`❌ SMS position erreur: ${e.message}`); }
+
+          db.alerts.unshift({
+            id: String(Date.now()),
+            timestamp: ts,
+            status: cp.key,
+            statusLabel: STATUS_LABELS[cp.key],
+            flight: FLIGHT, phone: PHONE,
+            message: cpMsg, sent, error
+          });
+
+          break; // one update per check cycle — next run handles the following stage
+        }
+      }
     }
 
     // 💋 Post-landing kiss alert — fires ~15 min after wheels down
