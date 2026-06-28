@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '0,45 * * * *'  # every ~45 minutes
   workflow_dispatch:         # run manually anytime from phone
+    inputs:
+      test:
+        description: 'Send test SMS instead of flight check'
+        required: false
+        default: 'false'
 
 permissions:
   contents: write            # needed to commit flight-data.json back
@@ -31,9 +36,16 @@ jobs:
           TWILIO_AUTH_TOKEN:   ${{ secrets.TWILIO_AUTH_TOKEN }}
           TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
           WHATSAPP_ENABLED:    ${{ secrets.WHATSAPP_ENABLED }}
-        run: node -e "require('./server.js').checkFlight().then(() => process.exit(0))"
+          TEST_MODE:           ${{ github.event.inputs.test }}
+        run: |
+          if [ "$TEST_MODE" = "true" ]; then
+            node -e "require('./server.js').sendTestSMSAlert().then(r => { console.log(JSON.stringify(r)); process.exit(r.sent ? 0 : 1); })"
+          else
+            node -e "require('./server.js').checkFlight().then(() => process.exit(0))"
+          fi
 
       - name: Save flight data to repo
+        if: ${{ github.event.inputs.test != 'true' }}
         run: |
           git config user.name  "Flight Tracker Bot"
           git config user.email "flight-tracker@github-actions"
