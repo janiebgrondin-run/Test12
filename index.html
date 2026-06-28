@@ -675,7 +675,7 @@ body {
           <div class="prop-val" id="prop-airline">Air Transat</div>
         </div>
         <div class="prop-row">
-          <div class="prop-key"><span class="prop-key-icon">🛫</span> Départ</div>
+          <div class="prop-key"><span class="prop-key-icon">🛫</span> Départ (Athènes)</div>
           <div class="prop-val" id="prop-dep">Athens — Aéroport International</div>
         </div>
         <div class="prop-row">
@@ -818,27 +818,30 @@ body {
 <script>
 // ── Demo / fallback data ───────────────────────────────────────────────────
 const NOW = Date.now();
+// TS691 departs Athens ~17h00 local (14h00 UTC), arrives MTL ~00h30 next day
+function demoDepTime() {
+  const d = new Date(); d.setUTCHours(14, 0, 0, 0);
+  if (d.getTime() < NOW) d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString();
+}
+const DEP_ISO = demoDepTime();
+const ARR_ISO = new Date(new Date(DEP_ISO).getTime() + 10.5*3600000).toISOString();
 const DEMO = {
   flight: {
-    flight_status: 'active',
+    flight_status: (new Date(DEP_ISO).getTime() - NOW) < 3600000 ? 'boarding' : 'scheduled',
     departure: {
-      airport: 'Athens International Airport', iata: 'ATH',
-      scheduled: new Date(NOW - 5.5*3600000).toISOString(),
-      actual:    new Date(NOW - 5.4*3600000).toISOString()
+      airport: 'Athens International Airport "Eleftherios Venizelos"', iata: 'ATH',
+      timezone: 'Europe/Athens', scheduled: DEP_ISO
     },
     arrival: {
-      airport: 'Montréal-Trudeau International Airport', iata: 'YUL',
-      scheduled: new Date(NOW + 4.2*3600000).toISOString(),
-      estimated: new Date(NOW + 4.0*3600000).toISOString()
+      airport: 'Montréal-Pierre Elliott Trudeau International Airport', iata: 'YUL',
+      timezone: 'America/Toronto', scheduled: ARR_ISO, estimated: ARR_ISO
     },
     flight:   { iata: 'TS691', number: '691' },
     airline:  { name: 'Air Transat', iata: 'TS' },
     aircraft: { registration: 'C-GTSI', iata: 'A332' }
   },
-  alerts: [
-    { id:'1', timestamp: new Date(NOW-5.5*3600000).toISOString(), status:'active', statusLabel:'En Route', message:'✈️ TS691 | En route!\nAthen → Montréal\nArrivée prévue: 22h15 (MTL)', sent:true, phone:'+14182627032' },
-    { id:'2', timestamp: new Date(NOW-6.2*3600000).toISOString(), status:'boarding', statusLabel:'Embarquement', message:'🛫 TS691 | Embarquement!\nAthen → Montréal\nArrivée prévue: 22h15 (MTL)', sent:true, phone:'+14182627032' }
-  ]
+  alerts: []
 };
 
 // ── Formatting helpers ─────────────────────────────────────────────────────
@@ -934,7 +937,8 @@ function updateUI(data) {
   const dep = f.departure, arr = f.arrival;
   document.getElementById('prop-dep').innerHTML =
     `${dep?.airport || '—'} &nbsp;<span style="color:var(--muted)">(${dep?.iata || 'ATH'})</span>
-     &nbsp;·&nbsp; <span style="color:var(--muted)">${fmtTime(dep?.actual || dep?.scheduled,'Europe/Athens')}</span>`;
+     &nbsp;·&nbsp; <strong>${fmtTime(dep?.actual || dep?.scheduled, 'Europe/Athens')}</strong>
+     <span style="color:var(--muted);font-size:12px">heure locale Athènes</span>`;
 
   const eta = arr?.estimated || arr?.scheduled;
   document.getElementById('prop-arr').innerHTML =
@@ -957,7 +961,7 @@ function updateUI(data) {
   document.getElementById('prog-fill').style.width = pct + '%';
   document.getElementById('prog-plane').style.left  = pct + '%';
   document.getElementById('prog-pct').textContent   = Math.round(pct) + '%';
-  document.getElementById('dep-time').textContent   = fmtTime(dep?.actual || dep?.scheduled, 'Europe/Athens');
+  document.getElementById('dep-time').innerHTML = `${fmtTime(dep?.actual || dep?.scheduled, 'Europe/Athens')}<br><span style="font-size:11px;color:var(--faint)">heure Athènes</span>`;
   document.getElementById('arr-time').innerHTML = `${fmtTime(eta, 'America/Toronto')}<br><span style="font-size:11px;color:var(--faint)">heure MTL</span>`;
 
   const remaining = arrTime - Date.now();

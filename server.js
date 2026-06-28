@@ -43,23 +43,27 @@ async function fetchFlight() {
 
 function mockFlight() {
   const now = Date.now();
-  const depOffset = 5.5 * 3600000;
-  const arrOffset = 4.2 * 3600000;
+  // TS691: departs Athens ~17:00 local (UTC+3) = 14:00 UTC, arrives MTL ~22:00 EDT
+  // Show as scheduled until real API key is added
+  const depUTC = new Date(now);
+  depUTC.setUTCHours(14, 0, 0, 0); // 17h00 Athens / 10h00 MTL
+  if (depUTC.getTime() < now) depUTC.setUTCDate(depUTC.getUTCDate() + 1);
+  const depTime = depUTC.getTime();
+  const arrTime = depTime + 10.5 * 3600000; // ~10h30 flight
   return {
-    flight_status: 'active',
+    flight_status: depTime - now < 3600000 ? 'boarding' : 'scheduled',
     departure: {
       airport: 'Athens International Airport "Eleftherios Venizelos"',
       iata: 'ATH',
       timezone: 'Europe/Athens',
-      scheduled: new Date(now - depOffset).toISOString(),
-      actual: new Date(now - depOffset + 900000).toISOString()
+      scheduled: new Date(depTime).toISOString()
     },
     arrival: {
       airport: 'Montréal-Pierre Elliott Trudeau International Airport',
       iata: 'YUL',
       timezone: 'America/Toronto',
-      scheduled: new Date(now + arrOffset).toISOString(),
-      estimated: new Date(now + arrOffset - 600000).toISOString()
+      scheduled: new Date(arrTime).toISOString(),
+      estimated: new Date(arrTime).toISOString()
     },
     flight: { iata: 'TS691', icao: 'TSC691', number: '691' },
     airline: { name: 'Air Transat', iata: 'TS', icao: 'TSC' },
