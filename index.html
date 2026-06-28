@@ -540,10 +540,34 @@ body {
 }
 .chip.highlight { background: #e3f3f0; border-color: #b2ddd8; color: var(--teal); }
 
+/* ── Backdrop (mobile) ── */
+.backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 40;
+  transition: opacity .2s;
+}
+.backdrop.show { display: block; }
+
 /* ── Responsive ── */
 @media (max-width: 820px) {
-  .sidebar { position: fixed; z-index: 50; height: 100vh; box-shadow: 4px 0 20px rgba(0,0,0,.1); }
-  .sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; box-shadow: none; }
+  .sidebar {
+    position: fixed;
+    z-index: 50;
+    height: 100vh;
+    width: var(--sidebar) !important;
+    min-width: var(--sidebar) !important;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    box-shadow: none;
+    overflow: hidden;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0,0,0,.18);
+  }
   .toggle-btn { display: block; }
   .main { margin-left: 0 !important; }
   .page { padding: 0 20px 80px; }
@@ -556,6 +580,7 @@ body {
 <body>
 
 <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+<div class="backdrop" id="backdrop" onclick="closeSidebar()"></div>
 <div class="refresh-toast" id="toast"></div>
 
 <div class="app">
@@ -1040,11 +1065,25 @@ function showToast(msg) {
 
 // ── Sidebar toggle ─────────────────────────────────────────────────────────
 function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('collapsed');
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('backdrop');
+  const isOpen = sidebar.classList.toggle('open');
+  backdrop.classList.toggle('show', isOpen);
 }
 
-function scrollToTop() { document.getElementById('page-top').scrollIntoView({ behavior:'smooth' }); }
-function scrollTo2(id) { document.querySelector(id)?.scrollIntoView({ behavior:'smooth', block:'start' }); }
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('backdrop').classList.remove('show');
+}
+
+function scrollToTop() {
+  document.getElementById('page-top').scrollIntoView({ behavior:'smooth' });
+  if (window.innerWidth <= 820) closeSidebar();
+}
+function scrollTo2(id) {
+  document.querySelector(id)?.scrollIntoView({ behavior:'smooth', block:'start' });
+  if (window.innerWidth <= 820) closeSidebar();
+}
 
 // ── Send test SMS ──────────────────────────────────────────────────────────
 async function sendTestSMS() {
