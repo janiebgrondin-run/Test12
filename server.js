@@ -63,66 +63,72 @@ async function fetchFlight() {
   return mockFlight();
 }
 
+// Great-circle distance in km (haversine)
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.asin(Math.sqrt(a));
+}
+
 function buildFromADSB(ac) {
   const onGround = ac.alt_baro === 'ground' || !!ac.on_ground;
-  const altFt = typeof ac.alt_baro === 'number' ? ac.alt_baro : null;
-  const now = Date.now();
-  // Estimate arrival: assume ~10.5h from takeoff; use scheduled as fallback
-  const depUTC = new Date(now); depUTC.setUTCHours(8, 25, 0, 0);
-  if (depUTC.getTime() > now) depUTC.setUTCDate(depUTC.getUTCDate() - 1);
-  const arrEstimate = new Date(depUTC.getTime() + 10.25 * 3600000).toISOString();
+  const altFt    = typeof ac.alt_baro === 'number' ? ac.alt_baro : null;
+  const speedKmh = ac.gs ? Math.round(ac.gs * 1.852) : null;
+
+  // Compute dep/arr dynamically from live position + speed — no hardcoded times
+  let depISO = null, arrISO = null;
+  if (ac.lat && ac.lon && speedKmh && speedKmh > 200) {
+    const remainingKm = haversine(ac.lat, ac.lon, 45.4706, -73.7408); // → YUL
+    const traveledKm  = Math.max(0, DIST_KM - remainingKm);
+    depISO = new Date(Date.now() - (traveledKm  / speedKmh) * 3600000).toISOString();
+    arrISO = new Date(Date.now() + (remainingKm / speedKmh) * 3600000).toISOString();
+  }
+
   return {
     flight_status: onGround ? 'landed' : 'active',
     departure: {
       airport: 'Athens International Airport "Eleftherios Venizelos"',
       iata: 'ATH', timezone: 'Europe/Athens',
-      scheduled: new Date(depUTC).toISOString(), actual: new Date(depUTC).toISOString()
+      scheduled: depISO, actual: depISO
     },
     arrival: {
       airport: 'Montréal-Pierre Elliott Trudeau International Airport',
       iata: 'YUL', timezone: 'America/Toronto',
-      scheduled: arrEstimate, estimated: arrEstimate
+      scheduled: arrISO, estimated: arrISO
     },
-    flight: { iata: 'TS691', icao: 'TSC691', number: '691' },
-    airline: { name: 'Air Transat', iata: 'TS', icao: 'TSC' },
+    flight:   { iata: 'TS691', icao: 'TSC691', number: '691' },
+    airline:  { name: 'Air Transat', iata: 'TS', icao: 'TSC' },
     aircraft: { registration: ac.r || 'C-GTSI', iata: ac.t || 'A332' },
     live: {
-      latitude: ac.lat || null,
-      longitude: ac.lon || null,
+      latitude:    ac.lat   || null,
+      longitude:   ac.lon   || null,
       altitude_ft: altFt,
-      speed_kmh: ac.gs ? Math.round(ac.gs * 1.852) : null,
-      heading: ac.track ? Math.round(ac.track) : null,
+      speed_kmh:   speedKmh,
+      heading:     ac.track ? Math.round(ac.track) : null,
       source: 'adsb.fi'
     }
   };
 }
 
 function mockFlight() {
-  const now = Date.now();
-  // TS691: departs Athens ~17:00 local (UTC+3) = 14:00 UTC, arrives MTL ~22:00 EDT
-  // Show as scheduled until real API key is added
-  const depUTC = new Date(now);
-  depUTC.setUTCHours(8, 25, 0, 0); // 11h25 Athens / 04h25 MTL → arrives 14h40 MTL
-  if (depUTC.getTime() < now) depUTC.setUTCDate(depUTC.getUTCDate() + 1);
-  const depTime = depUTC.getTime();
-  const arrTime = depTime + 10.25 * 3600000; // 10h15 flight
+  // No hardcoded times — show "scheduled" with blank times until live API provides data
   return {
-    flight_status: depTime - now < 3600000 ? 'boarding' : 'scheduled',
+    flight_status: 'scheduled',
     departure: {
       airport: 'Athens International Airport "Eleftherios Venizelos"',
-      iata: 'ATH',
-      timezone: 'Europe/Athens',
-      scheduled: new Date(depTime).toISOString()
+      iata: 'ATH', timezone: 'Europe/Athens',
+      scheduled: null
     },
     arrival: {
       airport: 'Montréal-Pierre Elliott Trudeau International Airport',
-      iata: 'YUL',
-      timezone: 'America/Toronto',
-      scheduled: new Date(arrTime).toISOString(),
-      estimated: new Date(arrTime).toISOString()
+      iata: 'YUL', timezone: 'America/Toronto',
+      scheduled: null, estimated: null
     },
-    flight: { iata: 'TS691', icao: 'TSC691', number: '691' },
-    airline: { name: 'Air Transat', iata: 'TS', icao: 'TSC' },
+    flight:   { iata: 'TS691', icao: 'TSC691', number: '691' },
+    airline:  { name: 'Air Transat', iata: 'TS', icao: 'TSC' },
     aircraft: { registration: 'C-GTSI', iata: 'A332', icao: 'A332' }
   };
 }

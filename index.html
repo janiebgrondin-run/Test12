@@ -832,25 +832,16 @@ body {
 
 <script>
 // ── Demo / fallback data ───────────────────────────────────────────────────
-const NOW = Date.now();
-// TS691 departs Athens ~17h00 local (14h00 UTC), arrives MTL ~00h30 next day
-function demoDepTime() {
-  const d = new Date(); d.setUTCHours(8, 25, 0, 0); // 11h25 Athens local
-  if (d.getTime() < NOW) d.setUTCDate(d.getUTCDate() + 1);
-  return d.toISOString();
-}
-const DEP_ISO = demoDepTime();
-const ARR_ISO = new Date(new Date(DEP_ISO).getTime() + 10.25*3600000).toISOString(); // 10h15 flight
 const DEMO = {
   flight: {
-    flight_status: (new Date(DEP_ISO).getTime() - NOW) < 3600000 ? 'boarding' : 'scheduled',
+    flight_status: 'scheduled',
     departure: {
       airport: 'Athens International Airport "Eleftherios Venizelos"', iata: 'ATH',
-      timezone: 'Europe/Athens', scheduled: DEP_ISO
+      timezone: 'Europe/Athens', scheduled: null
     },
     arrival: {
       airport: 'Montréal-Pierre Elliott Trudeau International Airport', iata: 'YUL',
-      timezone: 'America/Toronto', scheduled: ARR_ISO, estimated: ARR_ISO
+      timezone: 'America/Toronto', scheduled: null, estimated: null
     },
     flight:   { iata: 'TS691', number: '691' },
     airline:  { name: 'Air Transat', iata: 'TS' },
