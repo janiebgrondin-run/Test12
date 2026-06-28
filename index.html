@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>✈️ Vol TS691 · Tracker</title>
+<title>✈️ Gabrielle · Vol TS691</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -247,6 +247,8 @@ body {
 .badge.cancelled .badge-dot  { background: #dc2626; }
 .badge.diverted   { background: #f5f0fe; color: #6940a5; }
 .badge.diverted .badge-dot   { background: #6940a5; }
+.badge.test       { background: #e8f0fe; color: #1a73e8; }
+.badge.test .badge-dot       { background: #1a73e8; }
 
 /* ── Divider ── */
 .divider {
@@ -627,15 +629,15 @@ body {
         <text x="1100" y="148" text-anchor="middle" fill="rgba(255,255,255,0.6)"
               font-size="11" font-family="Inter,sans-serif" font-weight="600">YUL</text>
       </svg>
-      <div class="cover-badge" id="cover-status-badge">✈️ TS691 · Chargement…</div>
+      <div class="cover-badge" id="cover-status-badge">✈️ Gabrielle · TS691 · Chargement…</div>
     </div>
 
     <!-- Page content -->
     <div class="page" id="page-top">
 
       <span class="page-icon">✈️</span>
-      <h1 class="page-title">Vol TS691</h1>
-      <p class="page-subtitle">Athens (ATH) → Montréal-Trudeau (YUL) &nbsp;·&nbsp; Air Transat</p>
+      <h1 class="page-title">Gabrielle · Vol TS691</h1>
+      <p class="page-subtitle">Athens (ATH) → Montréal-Trudeau (YUL) &nbsp;·&nbsp; Air Transat &nbsp;·&nbsp; 7 426 km</p>
 
       <!-- Properties -->
       <div class="props">
@@ -712,6 +714,7 @@ body {
           <h2 class="section-title">📱 Alertes SMS</h2>
           <div style="display:flex;gap:8px">
             <button class="btn" onclick="checkNow()" id="check-btn">🔄 Vérifier maintenant</button>
+            <button class="btn primary" onclick="sendTestSMS()" id="test-btn">📱 Envoyer SMS test</button>
           </div>
         </div>
 
@@ -900,7 +903,7 @@ function updateUI(data) {
 
   // Cover badge
   document.getElementById('cover-status-badge').textContent =
-    `✈️ TS691 · ${statusLabel}`;
+    `✈️ Gabrielle · TS691 · ${statusLabel}`;
 
   // Properties
   const dep = f.departure, arr = f.arrival;
@@ -1042,6 +1045,28 @@ function toggleSidebar() {
 
 function scrollToTop() { document.getElementById('page-top').scrollIntoView({ behavior:'smooth' }); }
 function scrollTo2(id) { document.querySelector(id)?.scrollIntoView({ behavior:'smooth', block:'start' }); }
+
+// ── Send test SMS ──────────────────────────────────────────────────────────
+async function sendTestSMS() {
+  const btn = document.getElementById('test-btn');
+  btn.disabled = true; btn.textContent = '⏳ Envoi…';
+  try {
+    const r = await fetch('/api/test-sms', { method: 'POST' });
+    const d = await r.json();
+    if (d.demo) {
+      showToast('📵 Démo — Configurer Twilio pour vrai SMS');
+    } else if (d.sent) {
+      showToast('✅ SMS test envoyé à +1 418-262-7032!');
+    } else {
+      showToast('❌ Erreur: ' + (d.error || 'SMS non envoyé'));
+    }
+    await loadData();
+  } catch {
+    showToast('❌ Serveur non connecté — lancer npm start');
+  } finally {
+    btn.disabled = false; btn.innerHTML = '📱 Envoyer SMS test';
+  }
+}
 
 // ── Init ───────────────────────────────────────────────────────────────────
 makeStars();

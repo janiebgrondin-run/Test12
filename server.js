@@ -13,6 +13,12 @@ const PHONE = process.env.ALERT_PHONE || '+14182627032';
 const INTERVAL_MS = (parseFloat(process.env.CHECK_INTERVAL_HOURS) || 2) * 3600 * 1000;
 const DEMO_MODE = process.env.DEMO_MODE === 'true';
 
+// TS691 ATH → YUL flight constants
+const PERSON_NAME  = 'Gabrielle';
+const DIST_KM      = 7426;
+const DIST_MI      = 4615;
+const FLIGHT_DUR   = '~10h 30min';
+
 // ── Database (JSON file) ─────────────────────────────────────────────────────
 
 function readDB() {
@@ -98,6 +104,13 @@ function fmtTime(iso, tz = 'America/Toronto') {
   });
 }
 
+function formatDuration(ms) {
+  const totalMin = Math.round(ms / 60000);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return `${h}h ${m.toString().padStart(2,'0')}min`;
+}
+
 function alreadySentToday(db, status) {
   const today = new Date().toDateString();
   return db.alerts.some(a => a.status === status && new Date(a.timestamp).toDateString() === today && a.sent);
@@ -122,10 +135,45 @@ async function checkFlight() {
     const eta = f.arrival?.estimated || f.arrival?.scheduled;
     const etaStr = fmtTime(eta);
 
+    const depLocalStr  = fmtTime(f.departure?.actual || f.departure?.scheduled, 'Europe/Athens');
+    const etaMtlStr    = fmtTime(eta, 'America/Toronto');
+    const depActual    = f.departure?.actual || f.departure?.scheduled;
+    const arrActual    = f.arrival?.actual || eta;
+    const durationMs   = arrActual && depActual ? new Date(arrActual) - new Date(depActual) : null;
+    const durStr       = durationMs ? formatDuration(durationMs) : FLIGHT_DUR;
+
     const ALERT_MESSAGES = {
-      boarding: `🛫 TS691 | Embarquement!\nAthen → Montréal\nArrivée prévue: ${etaStr} (MTL)\n📍 Aéroport d'Athènes`,
-      active:   `✈️ TS691 | En route!\nAthen → Montréal\nArrivée prévue: ${etaStr} (MTL)`,
-      landed:   `🏁 TS691 | Atterri à Montréal!\nBienvenue! 🎉\nHeure: ${fmtTime(f.arrival?.actual || eta)}`
+      boarding: [
+        `🛫 ${PERSON_NAME} embarque! Vol TS691`,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `📍 Athens (ATH) → Montréal (YUL)`,
+        `🕐 Départ local Athènes: ${depLocalStr}`,
+        `📏 Distance: ${DIST_KM.toLocaleString('fr-CA')} km (${DIST_MI.toLocaleString('fr-CA')} mi)`,
+        `⏱ Durée estimée: ${FLIGHT_DUR}`,
+        `🛬 Arrivée prévue MTL: ${etaMtlStr}`,
+        `✈️ Air Transat · Airbus A330`
+      ].join('\n'),
+
+      active: [
+        `✈️ ${PERSON_NAME} est en route! Vol TS691`,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `📍 Athens (ATH) → Montréal (YUL)`,
+        `🕐 Partie d'Athènes: ${depLocalStr}`,
+        `📏 Distance totale: ${DIST_KM.toLocaleString('fr-CA')} km`,
+        `⏱ Durée de vol: ${durStr}`,
+        `🛬 Arrivée prévue MTL: ${etaMtlStr}`,
+        `✈️ Air Transat TS691`
+      ].join('\n'),
+
+      landed: [
+        `🏁 ${PERSON_NAME} est arrivée à Montréal! 🎉`,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `📍 Athens → Montréal-Trudeau (YUL)`,
+        `🛬 Atterrissage: ${fmtTime(f.arrival?.actual || eta, 'America/Toronto')}`,
+        `📏 Distance parcourue: ${DIST_KM.toLocaleString('fr-CA')} km`,
+        `⏱ Durée du vol: ${durStr}`,
+        `🎉 Bienvenue à Montréal!`
+      ].join('\n')
     };
 
     if (ALERT_MESSAGES[status] && !alreadySentToday(db, status)) {
@@ -185,6 +233,55 @@ app.post('/api/check', async (req, res) => {
   const flight = await checkFlight();
   const db = readDB();
   res.json({ success: true, flight, lastCheck: db.lastCheck, alerts: db.alerts || [] });
+});
+
+// ── Trial / test SMS ─────────────────────────────────────────────────────────
+app.post('/api/test-sms', async (req, res) => {
+  const f = readDB().flight || mockFlight();
+  const dep = f.departure?.actual || f.departure?.scheduled;
+  const arr = f.arrival?.estimated || f.arrival?.scheduled;
+  const depLocalStr = fmtTime(dep, 'Europe/Athens');
+  const etaMtlStr   = fmtTime(arr, 'America/Toronto');
+  const durMs       = dep && arr ? new Date(arr) - new Date(dep) : null;
+  const durStr      = durMs ? formatDuration(durMs) : FLIGHT_DUR;
+
+  const msg = [
+    `✈️ TEST · ${PERSON_NAME} Vol TS691`,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `📍 Athens (ATH) → Montréal (YUL)`,
+    `🕐 Départ Athènes: ${depLocalStr} (heure locale)`,
+    `📏 Distance: ${DIST_KM.toLocaleString('fr-CA')} km (${DIST_MI.toLocaleString('fr-CA')} mi)`,
+    `⏱ Durée estimée: ${durStr}`,
+    `🛬 Arrivée prévue MTL: ${etaMtlStr}`,
+    `✈️ Air Transat · Airbus A330`,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `🔔 Alertes: Embarquement · En Route · Atterri`
+  ].join('\n');
+
+  let sent = false, error = null, demo = false;
+  try {
+    const result = await sendAlert(msg);
+    sent = true;
+    demo = !!result?.demo;
+  } catch (e) {
+    error = e.message;
+  }
+
+  const db = readDB();
+  db.alerts.unshift({
+    id: String(Date.now()),
+    timestamp: new Date().toISOString(),
+    status: 'test',
+    statusLabel: 'Test',
+    flight: FLIGHT,
+    phone: PHONE,
+    message: msg,
+    sent,
+    error
+  });
+  writeDB(db);
+
+  res.json({ success: true, sent, demo, error, message: msg });
 });
 
 app.listen(PORT, () => {
