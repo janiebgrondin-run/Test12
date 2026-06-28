@@ -47,9 +47,8 @@ async function fetchFlight() {
   }
 
   // 2️⃣  ADSB.fi — 100% gratuit, sans clé, données ADS-B en temps réel
-  //     Fonctionne uniquement quand l'avion est en vol (pas encore parti = aucun résultat)
   try {
-    const icao = 'TSC691'; // Air Transat ICAO + numéro de vol
+    const icao = 'TSC691';
     const { data } = await axios.get(`https://api.adsb.fi/v1/callsign/${icao}`, { timeout: 8000 });
     if (data?.ac?.length > 0) {
       console.log('✅ Source: ADSB.fi (live ADS-B)');
@@ -58,7 +57,7 @@ async function fetchFlight() {
     console.log('ℹ️  ADSB.fi: aucun vol TSC691 en cours (pas encore en vol)');
   } catch (e) { console.log('ADSB.fi erreur:', e.message); }
 
-  // 3️⃣  Scheduled fallback (horaire estimé jusqu'au décollage)
+  // 3️⃣  Scheduled fallback
   console.log('ℹ️  Utilisation de l\'horaire estimé');
   return mockFlight();
 }
@@ -67,7 +66,6 @@ function buildFromADSB(ac) {
   const onGround = ac.alt_baro === 'ground' || !!ac.on_ground;
   const altFt = typeof ac.alt_baro === 'number' ? ac.alt_baro : null;
   const now = Date.now();
-  // Estimate arrival: assume ~10.5h from takeoff; use scheduled as fallback
   const depUTC = new Date(now); depUTC.setUTCHours(14, 0, 0, 0);
   if (depUTC.getTime() > now) depUTC.setUTCDate(depUTC.getUTCDate() - 1);
   const arrEstimate = new Date(depUTC.getTime() + 10.5 * 3600000).toISOString();
@@ -99,25 +97,21 @@ function buildFromADSB(ac) {
 
 function mockFlight() {
   const now = Date.now();
-  // TS691: departs Athens ~17:00 local (UTC+3) = 14:00 UTC, arrives MTL ~22:00 EDT
-  // Show as scheduled until real API key is added
   const depUTC = new Date(now);
-  depUTC.setUTCHours(14, 0, 0, 0); // 17h00 Athens / 10h00 MTL
+  depUTC.setUTCHours(14, 0, 0, 0);
   if (depUTC.getTime() < now) depUTC.setUTCDate(depUTC.getUTCDate() + 1);
   const depTime = depUTC.getTime();
-  const arrTime = depTime + 10.5 * 3600000; // ~10h30 flight
+  const arrTime = depTime + 10.5 * 3600000;
   return {
     flight_status: depTime - now < 3600000 ? 'boarding' : 'scheduled',
     departure: {
       airport: 'Athens International Airport "Eleftherios Venizelos"',
-      iata: 'ATH',
-      timezone: 'Europe/Athens',
+      iata: 'ATH', timezone: 'Europe/Athens',
       scheduled: new Date(depTime).toISOString()
     },
     arrival: {
       airport: 'Montréal-Pierre Elliott Trudeau International Airport',
-      iata: 'YUL',
-      timezone: 'America/Toronto',
+      iata: 'YUL', timezone: 'America/Toronto',
       scheduled: new Date(arrTime).toISOString(),
       estimated: new Date(arrTime).toISOString()
     },
@@ -153,7 +147,7 @@ async function sendAlert(message) {
 
 const STATUS_LABELS = {
   scheduled: 'Prévu', active: 'En Route', boarding: 'Embarquement',
-  landed: 'Atterri', cancelled: 'Annulé', diverted: 'Détourné', unknown: 'Inconnu'
+  landed: 'Atterri', post_landed: '💋 Bisou!', cancelled: 'Annulé', diverted: 'Détourné', unknown: 'Inconnu'
 };
 
 function fmtTime(iso, tz = 'America/Toronto') {
@@ -191,7 +185,6 @@ async function checkFlight() {
 
     if (!f) { writeDB(db); console.log('Aucune donnée.'); return f; }
 
-    // Write public flight-data.json so the static HTML can read it from GitHub
     fs.writeFileSync(
       path.join(__dirname, 'flight-data.json'),
       JSON.stringify({ flight: f, lastUpdated: ts, source: process.env.AVIATION_API_KEY ? 'live' : 'demo' }, null, 2)
@@ -199,7 +192,6 @@ async function checkFlight() {
 
     const status = f.flight_status;
     const eta = f.arrival?.estimated || f.arrival?.scheduled;
-    const etaStr = fmtTime(eta);
 
     const depLocalStr  = fmtTime(f.departure?.actual || f.departure?.scheduled, 'Europe/Athens');
     const etaMtlStr    = fmtTime(eta, 'America/Toronto');
@@ -262,6 +254,38 @@ async function checkFlight() {
       });
     } else {
       console.log(`ℹ️  Statut: ${STATUS_LABELS[status] || status} — pas de nouvelle alerte`);
+    }
+
+    // 💋 Post-landing kiss alert — fires ~15 min after wheels down
+    if (status === 'landed') {
+      const arrISO = f.arrival?.actual || f.arrival?.estimated || f.arrival?.scheduled;
+      const minsAfterLanding = arrISO ? (Date.now() - new Date(arrISO)) / 60000 : 0;
+      if (minsAfterLanding >= 15 && !alreadySentToday(db, 'post_landed')) {
+        const kissMsg = [
+          `💋 Vous pouvez embrasser Gabrielle!`,
+          `━━━━━━━━━━━━━━━━━━━━`,
+          `✈️ Vol TS691 · Athens → Montréal`,
+          `🛬 Atterrie depuis ~${Math.round(minsAfterLanding)} min`,
+          `📍 Aéroport Montréal-Trudeau (YUL)`,
+          `💕 Bienvenue à Montréal, Gabrielle!`
+        ].join('\n');
+
+        let sent = false, error = null;
+        try { await sendAlert(kissMsg); sent = true; console.log('✅ Alerte bisou envoyée!'); }
+        catch (e) { error = e.message; console.error(`❌ SMS bisou erreur: ${e.message}`); }
+
+        db.alerts.unshift({
+          id: String(Date.now()),
+          timestamp: ts,
+          status: 'post_landed',
+          statusLabel: '💋 Bisou!',
+          flight: FLIGHT,
+          phone: PHONE,
+          message: kissMsg,
+          sent,
+          error
+        });
+      }
     }
 
     writeDB(db);
